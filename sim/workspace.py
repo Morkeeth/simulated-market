@@ -478,7 +478,7 @@ def cmd_workspace(a):
     ws.allow_app_report = bool(getattr(a,'allow_app_report',False))
     ws.allow_app_swarm = bool(getattr(a,'allow_app_swarm',False))
     server = ThreadingHTTPServer(('127.0.0.1', a.port), Handler); server.workspace = ws
-    print(f'Private workspace: http://127.0.0.1:{server.server_port}/workspace#token={ws.token}', flush=True)
+    print(f'Private app check: http://127.0.0.1:{server.server_port}/tools#token={ws.token}', flush=True)
     print('Private workspace. Local execution by default; sponsor execution requires explicit authorization and preview confirmation.', flush=True)
     try: server.serve_forever()
     except KeyboardInterrupt: pass

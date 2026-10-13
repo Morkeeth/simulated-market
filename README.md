@@ -25,9 +25,17 @@ This startup command keeps model visitors, model reports and sponsor execution o
 
 See [the app-check guide](docs/app-check.md) for the full-run interface, its limits and explicit enablement. The configured model is NVIDIA Nemotron Nano through Nebius Token Factory. Full model use makes billable inference requests. It is distinct from the basic check and from replaying saved screens. No judge-hosted deployment, human validation, revenue forecast or prediction accuracy is established by this source snapshot.
 
+## First Users direction
+
+The ambition is to pair simulated visitors with verified human first visits: run a bounded task with software visitors, then ask paid, verified humans through FAVOUR to attempt the same task. Keep both reports separate and measure where they agree. That human flow, its supply, payments and calibration are planned; no integration or human result is claimed here. The first offer to test is EUR19 for one check, before subscription plans. There are no sales or live payments.
+
+## Supporting paths
+
+`sim/task_contract.py` and `sim/task_rail.py` preserve ordered read-only task requirements. Explicitly requested `sim/docs_rescue.py` searches official documentation with Tavily; it requires paid-call authorization and does not establish task completion. `sim/payment_stub.py` is a labelled local billing prototype, not a checkout or live entitlement service. See [task contracts](docs/task-contract.md) and [payment and scale design](docs/payment-scale.md). The `/tools` workspace is the app-check interface.
+
 ## Source scope
 
-[SOURCE-ALLOWLIST.txt](SOURCE-ALLOWLIST.txt) names every included file. Private research archives, invitation and registration records, working instructions, historical logs, account data and saved model traces are omitted. The original private repository remains intact. This snapshot has a fresh single-commit history and no remote.
+[SOURCE-ALLOWLIST.txt](SOURCE-ALLOWLIST.txt) names every included file. Private research archives, invitation and registration records, working instructions, historical logs, account data and saved model traces are omitted. The original private repository remains intact. The public history starts with a fresh source snapshot; later reviewed changes contain no private ancestor history.
 
 The earlier document/CLI comparison code and its public python-dotenv fixture remain available as supporting modules. Their original working reports, studies and internal build guide are not included. The main supported startup path here is the app-check workspace above.
 

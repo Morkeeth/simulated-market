@@ -99,10 +99,21 @@ def last_verified_receipt(path=None) -> dict:
     return out
 
 
-def search(query: str, *, max_results: int = 6, receipts_path=None) -> list[Candidate]:
+def search(query: str, *, max_results: int = 6, receipts_path=None,
+           domains=None, response_path=None) -> list[Candidate]:
     global LIVE_CALLS
     key = load_key()  # refuses before any network
-    body = json.dumps({"query": query, "max_results": max_results}).encode()
+    if not isinstance(query, str) or not query.strip() or len(query) > 500:
+        raise ValueError('Choose one short public documentation question.')
+    if type(max_results) is not int or not 1 <= max_results <= 6:
+        raise ValueError('Choose between one and six search results.')
+    options = {"query": query, "max_results": max_results,
+               "search_depth": "basic", "auto_parameters": False,
+               "include_answer": False, "include_usage": True}
+    if domains:
+        options['include_domains'] = list(domains)
+        options['include_domains_mode'] = 'restrict'
+    body = json.dumps(options).encode()
     req = urllib.request.Request(ENDPOINT, data=body, method="POST", headers={
         "Content-Type": "application/json", "Authorization": f"Bearer {key}"})
     try:
@@ -111,11 +122,15 @@ def search(query: str, *, max_results: int = 6, receipts_path=None) -> list[Cand
     except urllib.error.HTTPError as e:
         raise RuntimeError(f"Tavily search failed: HTTP {e.code} {e.reason}") from None
     LIVE_CALLS += 1
+    if response_path is not None:
+        target = Path(response_path)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps({'request': options, 'response': payload}, indent=2))
     out = [Candidate(url=x["url"], title=x.get("title") or "(untitled)",
                      excerpt=(x.get("content") or "")[:400])
            for x in payload.get("results") or [] if x.get("url")]
-    log_receipt(source=SOURCE, query=query, candidates=out, live=True, labels=["RUNTIME"],
-                search_id=payload.get("request_id"), path=receipts_path)
+    row = log_receipt(source=SOURCE, query=query, candidates=out, live=True, labels=["RUNTIME"],
+                      search_id=payload.get("request_id"), path=receipts_path)
     return out
 
 

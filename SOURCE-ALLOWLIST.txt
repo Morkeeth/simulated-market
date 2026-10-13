@@ -7,6 +7,8 @@ calib/__init__.py
 calib/score.py
 calib/vectors.json
 docs/app-check.md
+docs/payment-scale.md
+docs/task-contract.md
 grounding/fixture.jsonl
 requirements-app-check.txt
 requirements-sponsor.txt
@@ -31,6 +33,7 @@ sim/compare.py
 sim/counterfactual.py
 sim/decision_impact.py
 sim/doc.py
+sim/docs_rescue.py
 sim/errors.py
 sim/grounding.py
 sim/guard.py
@@ -40,6 +43,7 @@ sim/image_review.py
 sim/labels.py
 sim/model_policy.py
 sim/model_smoke.py
+sim/payment_stub.py
 sim/persona.py
 sim/pr_intake.py
 sim/public_json_trial.py
@@ -59,6 +63,8 @@ sim/submission.py
 sim/swarm_api.py
 sim/swarm_guide.py
 sim/swarm_mcp.py
+sim/task_contract.py
+sim/task_rail.py
 sim/tokenfactory_local.py
 sim/tool_builder.py
 sim/tool_decision.py
@@ -92,6 +98,8 @@ target/python-dotenv/target.json
 target/python-dotenv/wheels/python_dotenv-1.2.3-py3-none-any.whl
 tests/test_app_check.py
 tests/test_app_swarm.py
+tests/test_night_paths.py
+tests/test_task_contract.py
 web/index.html
 web/score.js
 web/workspace.html

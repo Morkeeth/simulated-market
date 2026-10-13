@@ -23,3 +23,11 @@ Provider requests are reserved against a conservative local cost account before 
 Model visitors are not people. Their choices vary, the task checks have limits, and rig-blocked app requests can confound a finding. A screenshot or model claim does not prove demand, human understanding, purchases, adoption or revenue. Results must be inspected at their supporting step. This snapshot includes no retained study corpus and no public judge endpoint.
 
 Phone uses a separate reading view; desktop adds graphs. Replay timing is presentation timing, separate from measured step elapsed time. The planted `/control/` app offers a broken-link control for full model trials; loading its first page in basic mode does not test every planted fault.
+
+## Official documentation rescue
+
+After a reading task stops, an explicit public help question can use `python -m sim.docs_rescue "your public question" --domain docs.example.com --receipt-dir ../private-rescue --allow-paid`. Basic Search plans one credit (USD0.008 PAYG). It returns official HTTPS source links to inspect, not completion. Never pass private screenshots/page text or credentials in a question. A separate run retains provider usage; invoices are not inferred from credits.
+
+## Local payment design
+
+`sim.payment_stub` exposes a labelled LOCAL checkout request and duplicate-event controls. It never contacts Stripe and cannot create a payment or real entitlement. See docs/payment-scale.md before any production integration.

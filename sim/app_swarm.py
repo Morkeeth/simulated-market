@@ -22,7 +22,7 @@ import threading
 import time
 from urllib.parse import urlsplit
 
-from sim import hosted_cost, tool_trial
+from sim import hosted_cost, tool_trial, task_contract, task_rail
 
 PROVIDER = 'Nebius Token Factory'
 SHARED_STOP_USD = Decimal('8')       # the same stop the deeper report uses
@@ -45,13 +45,9 @@ CAST = [
      'goal': 'Before trusting this app, find either what it costs or how it works under the hood.'},
 ]
 FALLBACK_JOB = 'Work out what this app is for and do its main thing'
-WRITES = re.compile(r'^\s*(post|upload|save|create|make|add|share|publish|submit|send|buy|order|book|sign.?up|register|join|write|record|import|bring in|install|connect|invite|vote|pay)\b|\b(and|then|to)\s+(post|upload|save|create|share|publish|submit|send|buy|order|book|sign.?up|register|pay)\b|\bsign.?up\b', re.I)
-
-
 def needs_write(job):
-    """True when the task itself is an act that changes something. Read from its words, no model."""
-    return bool(WRITES.search(job or ''))
-
+    """Classify the intended act using the typed local task contract."""
+    return task_contract.compile_task(job).intent == 'write'
 
 
 
@@ -70,7 +66,7 @@ def cache_key(url, job, tries):
     """A saved result stands for one address, one task, these visitors and goals, this many tries and this setup."""
     people = personas_for(job)
     setup = {'address': url.strip().rstrip('/'), 'job': job.strip().rstrip('.').casefold(), 'tries': tries, 'model': hosted_cost.MODEL,
-             'visitors': [[x['id'], x['goal'], x['max_steps'], list(x['viewport'])] for x in people], 'rules': 2}
+             'visitors': [[x['id'], x['goal'], x['max_steps'], list(x['viewport'])] for x in people], 'rules': 3, 'task_contract': task_contract.compile_task(job).payload()}
     return hashlib.sha256(json.dumps(setup, sort_keys=True).encode()).hexdigest()[:32]
 
 
@@ -303,35 +299,31 @@ done is true only when the form, the command or the control that begins it is on
 Existing content made by other people is not the start. A page that only explains the app is not the start.'''
 
 MOVES = {'went_somewhere': 'open something beyond the first screen', 'came_back': 'come back to a screen you were on before',
-         'wrote': 'do the part that needs an account or saves something, which a read-only visitor cannot do'}
+         'wrote': 'do the part that needs an account or saves something, which a read-only visitor cannot do',
+         'task_contract': 'clarify the task before calling it complete'}
 def required_moves(job):
-    """The parts a task names beyond its last screen. Read from its words, no model."""
-    back = re.search(r'\b(return|returns|come back|comes back|go back|get back|back to)\b', job or '', re.I)
-    then = re.search(r'\b(and then|then|after that|afterwards)\b', job or '', re.I)
-    if needs_write(re.sub(r'^Do what people come to this app for:\s*', '', job or '')): return ['wrote']
-    return ['went_somewhere', 'came_back'] if back else ['went_somewhere'] if then else []
+    return list(task_contract.compile_task(job).required_moves)
 
 
 def moves_made(trail):
-    """What an ordered list of steps shows: left the first screen, and came back to an earlier one."""
-    urls = [(e.get('url') or '').split('#')[0].rstrip('/') for e in trail]; out = []
-    if len(set(urls)) >= 2: out.append('went_somewhere')
-    if any(urls[i] == urls[k] and any(u != urls[i] for u in urls[i + 1:k]) for i in range(len(urls)) for k in range(i + 2, len(urls))): out.append('came_back')
-    return out
+    return task_rail.observed_moves(trail)
 
 
 def completion(job, screen_confirmed, trail):
-    """Three states. Claimed: the visitor said so. Screen confirmed: the second call agreed about that screen.
-    Job completed: the screen is confirmed and the steps show every part the task names."""
-    if not screen_confirmed: return {'state': 'claimed', 'missing': []}
-    made = moves_made(trail); missing = [m for m in required_moves(job) if m not in made]
-    return {'state': 'screen_confirmed' if missing else 'job_completed', 'missing': missing}
+    """Keep model confirmation separate from independent task enforcement."""
+    if not screen_confirmed:
+        return {'state': 'claimed', 'missing': []}
+    decision = task_rail.enforce(task_contract.compile_task(job), trail)
+    return {'state': 'job_completed' if decision.allowed else 'screen_confirmed',
+            'missing': list(decision.missing)}
 
 
 def confirm_messages(person, screen_text, trail=None):
     """The second call. It gets the task, the ordered steps and the text of the named screen. Nothing the visitor said."""
+    contract = task_contract.compile_task(person.get('job') if person.get('start_only') else person['goal'])
     did = '\n'.join(f"{i}. On {e.get('url')}: {e.get('action')}" + (f" '{e['target']}'" if e.get('target') else '') for i, e in enumerate(trail or [], 1)) or '(no steps recorded)'
     system = CONFIRM_START.format(job=person['job']) if person.get('start_only') else CONFIRM.format(goal=person['goal'])
+    system += '\nTask contract (locally parsed, not model-generated): ' + json.dumps(contract.payload(), ensure_ascii=False)
     return [{'role': 'system', 'content': system}, {'role': 'user', 'content': 'What the visitor did, in order:\n' + did},
             {'role': 'user', 'content': screen_text or '(no readable text)'}]
 
@@ -563,7 +555,7 @@ def _visit_one(p, person, client, budget, url, seed, t0, publish, shared, tag='t
                         if look['found'] and step['look']['on_page']:
                             # A claim. A second call gets only the text of this screen and must agree.
                             row['claimed'] = True
-                            trail = [{'url': x['url'], 'action': x.get('action'), 'target': x.get('target_text')} for x in row['steps'][:-1]] + [{'url': page.url, 'action': 'look'}]
+                            trail = [{'url': x['url'], 'action': x.get('action'), 'target': x.get('target_text'), 'status': x.get('status')} for x in row['steps'][:-1]] + [{'url': page.url, 'action': 'look'}]
                             second, second_call = budget.call(client, confirm_messages(person, view['text'], trail), f"{tag}-{person['id']}-{n:02d}-confirm", seed, 0)
                             verdict = parse_confirm(second.text); agreed = confirmed(verdict, view['text'])
                             if verdict['done'] and not agreed: verdict['why'] = 'It said yes but pointed at no words on this screen that show it. ' + verdict['why']
@@ -904,6 +896,7 @@ def run(p, personas=None, client_for=None, max_calls=None, run_cap_usd=RUN_CAP_U
     if not (r.get('job') or {}).get('text'):
         found = {'text': CONTROL_JOB, 'source': 'fixed'} if r.get('control') else discover_job(p.parent.parent, r['url'])
         r['job'] = found if found.get('text') else {**found, 'text': SAFE_JOB, 'source': 'fallback'}
+    r['job']['task_contract'] = task_contract.compile_task(r['job']['text']).payload()
     r['job']['needs_write'] = needs_write(r['job']['text']); r['job']['label'] = job_label(r['job'].get('source'))
     custom = personas is not None; personas = personas or personas_for(r['job']['text'])
     if not custom: r['cache_key'] = cache_key(r['url'], r['job']['text'], n)

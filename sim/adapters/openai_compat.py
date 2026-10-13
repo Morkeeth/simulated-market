@@ -37,7 +37,8 @@ class ChatClient:
             raise ValueError(self._identity_failure)
 
     def chat(self, messages: list[dict], *, temperature: float = 0.0, seed: int = 0,
-             max_tokens: int = 256, chat_template_kwargs: dict | None = None) -> ChatReply:
+             max_tokens: int = 256, chat_template_kwargs: dict | None = None,
+             response_format: dict | None = None) -> ChatReply:
         self.require_verified_identity()
         request = {
             "model": self.model,
@@ -48,6 +49,8 @@ class ChatClient:
         }
         if chat_template_kwargs is not None:
             request['chat_template_kwargs'] = chat_template_kwargs
+        if response_format is not None:
+            request['response_format'] = response_format
         body = json.dumps(request).encode()
         headers = {"Content-Type": "application/json"}
         if self._api_key:
@@ -60,9 +63,18 @@ class ChatClient:
             with urllib.request.urlopen(req, timeout=self.timeout) as r:
                 payload = json.load(r)
         except urllib.error.HTTPError as e:
+            detail = ''
+            try:
+                error_payload = json.load(e)
+                error_obj = error_payload.get('error', error_payload)
+                detail = json.dumps(error_obj, ensure_ascii=False)[:600]
+                if self._api_key:
+                    detail = detail.replace(self._api_key, '[credential removed]')
+            except Exception:
+                pass
             self.record({'service': 'chat_request', 'event': 'failed',
                          'requested_model': self.model, 'error_type': 'HTTPError',
-                         'http_status': e.code, 'billing_status': 'unknown'})
+                         'http_status': e.code, 'provider_error': detail, 'billing_status': 'unknown'})
             raise RuntimeError(f"chat call failed: HTTP {e.code}") from None
         except Exception as e:
             self.record({'service': 'chat_request', 'event': 'failed',
