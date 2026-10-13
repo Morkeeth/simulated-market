@@ -1,0 +1,539 @@
+{
+  "after": "efefe25443c56988841ab96cdac01352123ba268",
+  "before": "d863ade0c7fa4826e8b71aa467809c83a711f019",
+  "cost_list_price_estimate_usd": 0.01684788,
+  "inference": "hosted Nebius Token Factory",
+  "model": "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B",
+  "pr": "https://github.com/python/cpython/pull/17472",
+  "runs": [
+    {
+      "arm": "before",
+      "calls": 8,
+      "seconds": 25.64,
+      "seed": 864521101,
+      "status": "LimitsExceeded",
+      "steps": [
+        {
+          "command": "tool --help",
+          "exit": 0
+        },
+        {
+          "command": "tool /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "tool /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "tool --indent 2 /work/names.json /agent/answer.json",
+          "exit": 0
+        }
+      ],
+      "task_passed": false
+    },
+    {
+      "arm": "before",
+      "calls": 8,
+      "seconds": 22.92,
+      "seed": 864521102,
+      "status": "LimitsExceeded",
+      "steps": [
+        {
+          "command": "tool --help",
+          "exit": 0
+        },
+        {
+          "command": "tool /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "tool /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "tool /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "tool /work/names.json /agent/answer.json",
+          "exit": 0
+        }
+      ],
+      "task_passed": false
+    },
+    {
+      "arm": "before",
+      "calls": 4,
+      "seconds": 18.74,
+      "seed": 864521103,
+      "status": "RepeatedFormatError",
+      "steps": [
+        {
+          "command": "tool --help",
+          "exit": 0
+        }
+      ],
+      "task_passed": false
+    },
+    {
+      "arm": "before",
+      "calls": 8,
+      "seconds": 26.56,
+      "seed": 864521104,
+      "status": "RepeatedFormatError",
+      "steps": [
+        {
+          "command": "tool --help",
+          "exit": 0
+        },
+        {
+          "command": "tool /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "tool /work/names.json /agent/answer.json",
+          "exit": 0
+        }
+      ],
+      "task_passed": false
+    },
+    {
+      "arm": "before",
+      "calls": 8,
+      "seconds": 19.48,
+      "seed": 864521105,
+      "status": "LimitsExceeded",
+      "steps": [
+        {
+          "command": "ls -la /work",
+          "exit": 0
+        },
+        {
+          "command": "cat /work/names.json",
+          "exit": 0
+        },
+        {
+          "command": "tool --help",
+          "exit": 0
+        },
+        {
+          "command": "tool /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "cat /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "cp /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "cp /work/names.json /agent/answer.json",
+          "exit": 0
+        }
+      ],
+      "task_passed": true
+    },
+    {
+      "arm": "before",
+      "calls": 6,
+      "seconds": 22.33,
+      "seed": 864521106,
+      "status": "RepeatedFormatError",
+      "steps": [
+        {
+          "command": "tool --help",
+          "exit": 0
+        },
+        {
+          "command": "tool /work/names.json /agent/answer.json",
+          "exit": 0
+        }
+      ],
+      "task_passed": false
+    },
+    {
+      "arm": "before",
+      "calls": 8,
+      "seconds": 28.07,
+      "seed": 864521107,
+      "status": "LimitsExceeded",
+      "steps": [
+        {
+          "command": "tool --help",
+          "exit": 0
+        },
+        {
+          "command": "tool /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "tool /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "tool /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "tool /work/names.json /agent/answer.json && echo \"Created /agent/answer.json\"",
+          "exit": 0
+        },
+        {
+          "command": "tool /work/names.json /agent/answer.json",
+          "exit": 0
+        }
+      ],
+      "task_passed": false
+    },
+    {
+      "arm": "before",
+      "calls": 6,
+      "seconds": 27.83,
+      "seed": 864521108,
+      "status": "Submitted",
+      "steps": [
+        {
+          "command": "tool --help",
+          "exit": 0
+        },
+        {
+          "command": "tool /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "cp /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT",
+          "exit": 0
+        }
+      ],
+      "task_passed": true
+    },
+    {
+      "arm": "before",
+      "calls": 4,
+      "seconds": 12.36,
+      "seed": 864521109,
+      "status": "Submitted",
+      "steps": [
+        {
+          "command": "tool --help",
+          "exit": 0
+        },
+        {
+          "command": "cp /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT",
+          "exit": 0
+        }
+      ],
+      "task_passed": true
+    },
+    {
+      "arm": "before",
+      "calls": 4,
+      "seconds": 15.51,
+      "seed": 864521110,
+      "status": "Submitted",
+      "steps": [
+        {
+          "command": "tool --help",
+          "exit": 0
+        },
+        {
+          "command": "cp /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT",
+          "exit": 0
+        }
+      ],
+      "task_passed": true
+    },
+    {
+      "arm": "after",
+      "calls": 5,
+      "seconds": 10.99,
+      "seed": 864521101,
+      "status": "Submitted",
+      "steps": [
+        {
+          "command": "tool --help",
+          "exit": 0
+        },
+        {
+          "command": "cat /work/names.json",
+          "exit": 0
+        },
+        {
+          "command": "tool --no-ensure-ascii /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "cat /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT",
+          "exit": 0
+        }
+      ],
+      "task_passed": true
+    },
+    {
+      "arm": "after",
+      "calls": 8,
+      "seconds": 26.85,
+      "seed": 864521102,
+      "status": "LimitsExceeded",
+      "steps": [
+        {
+          "command": "tool --help",
+          "exit": 0
+        },
+        {
+          "command": "tool --no-ensure-ascii /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "tool --no-ensure-ascii /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "tool --no-ensure-ascii /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "tool --no-ensure-ascii /work/names.json /agent/answer.json",
+          "exit": 0
+        }
+      ],
+      "task_passed": true
+    },
+    {
+      "arm": "after",
+      "calls": 4,
+      "seconds": 11.22,
+      "seed": 864521103,
+      "status": "Submitted",
+      "steps": [
+        {
+          "command": "tool --help",
+          "exit": 0
+        },
+        {
+          "command": "tool --no-ensure-ascii /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT",
+          "exit": 0
+        }
+      ],
+      "task_passed": true
+    },
+    {
+      "arm": "after",
+      "calls": 5,
+      "seconds": 12.37,
+      "seed": 864521104,
+      "status": "Submitted",
+      "steps": [
+        {
+          "command": "tool --preserve-utf8 /work/names.json /agent/answer.json",
+          "exit": 2
+        },
+        {
+          "command": "tool --no-ensure-ascii /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT",
+          "exit": 0
+        }
+      ],
+      "task_passed": true
+    },
+    {
+      "arm": "after",
+      "calls": 8,
+      "seconds": 17.79,
+      "seed": 864521105,
+      "status": "LimitsExceeded",
+      "steps": [
+        {
+          "command": "tool --help",
+          "exit": 0
+        },
+        {
+          "command": "tool --no-ensure-ascii /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "tool --no-ensure-ascii /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "tool --no-ensure-ascii /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "tool --no-ensure-ascii /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "cat /agent/answer.json",
+          "exit": 0
+        }
+      ],
+      "task_passed": true
+    },
+    {
+      "arm": "after",
+      "calls": 5,
+      "seconds": 17.51,
+      "seed": 864521106,
+      "status": "Submitted",
+      "steps": [
+        {
+          "command": "tool --help",
+          "exit": 0
+        },
+        {
+          "command": "tool --no-ensure-ascii /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "cat /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT",
+          "exit": 0
+        }
+      ],
+      "task_passed": true
+    },
+    {
+      "arm": "after",
+      "calls": 4,
+      "seconds": 10.53,
+      "seed": 864521107,
+      "status": "Submitted",
+      "steps": [
+        {
+          "command": "tool --help",
+          "exit": 0
+        },
+        {
+          "command": "tool --no-ensure-ascii /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "cat /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT",
+          "exit": 0
+        }
+      ],
+      "task_passed": true
+    },
+    {
+      "arm": "after",
+      "calls": 4,
+      "seconds": 14.66,
+      "seed": 864521108,
+      "status": "Submitted",
+      "steps": [
+        {
+          "command": "tool --help",
+          "exit": 0
+        },
+        {
+          "command": "tool --no-ensure-ascii /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "cat /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT",
+          "exit": 0
+        }
+      ],
+      "task_passed": true
+    },
+    {
+      "arm": "after",
+      "calls": 7,
+      "seconds": 17.47,
+      "seed": 864521109,
+      "status": "Submitted",
+      "steps": [
+        {
+          "command": "tool --help",
+          "exit": 0
+        },
+        {
+          "command": "tool --no-ensure-ascii /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "cat /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "ls -l /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT",
+          "exit": 0
+        }
+      ],
+      "task_passed": true
+    },
+    {
+      "arm": "after",
+      "calls": 5,
+      "seconds": 15.15,
+      "seed": 864521110,
+      "status": "Submitted",
+      "steps": [
+        {
+          "command": "tool --help",
+          "exit": 0
+        },
+        {
+          "command": "tool --no-ensure-ascii /work/names.json /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "cat /agent/answer.json",
+          "exit": 0
+        },
+        {
+          "command": "echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT",
+          "exit": 0
+        }
+      ],
+      "task_passed": true
+    }
+  ],
+  "schema": "nvidia-swarm-example/1",
+  "scope": "Recorded manual task on one public change. Ten matched attempts per version. This is not a live run of a pasted PR or a release forecast.",
+  "task": "Write a release handoff with readable Unicode names and messages.",
+  "title": "Twenty agents tried a Unicode release handoff",
+  "tool_execution": "local networkless Docker"
+}

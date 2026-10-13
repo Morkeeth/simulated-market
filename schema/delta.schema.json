@@ -1,0 +1,248 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "simulated-market/delta.schema.json",
+  "title": "Same-seed counterfactual delta",
+  "description": "Base run vs head run on the same seeds from the same checkpoint. A delta is only written when the no-patch control run was byte-identical to the base run. Direction comes first. Magnitude always carries a calibration badge.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "labels",
+    "seed",
+    "n",
+    "base",
+    "head",
+    "control",
+    "paired",
+    "direction",
+    "steps",
+    "magnitude"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.2.0",
+      "description": "0.2.0 added paired.steps_back and paired.steps_forward. 0.1.0 files have neither."
+    },
+    "labels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "contains": {
+        "const": "SIMULATED"
+      }
+    },
+    "seed": {
+      "type": "integer"
+    },
+    "n": {
+      "$ref": "run.schema.json#/$defs/intFigure"
+    },
+    "base": {
+      "$ref": "#/$defs/side"
+    },
+    "head": {
+      "$ref": "#/$defs/side"
+    },
+    "control": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identical",
+        "base_sha256",
+        "control_sha256"
+      ],
+      "properties": {
+        "identical": {
+          "const": true
+        },
+        "base_sha256": {
+          "$ref": "run.schema.json#/$defs/sha256"
+        },
+        "control_sha256": {
+          "$ref": "run.schema.json#/$defs/sha256"
+        }
+      }
+    },
+    "paired": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "improved",
+        "worsened",
+        "p_value",
+        "test",
+        "steps_back",
+        "steps_forward"
+      ],
+      "description": "Per-user pairs across base and head on the same seed. improved: reached the goal only on head. worsened: only on base. steps_back and steps_forward compare each user's furthest step, so a user who lost a step without changing the goal outcome is visible. They do not change improved, worsened or the sign test.",
+      "properties": {
+        "improved": {
+          "$ref": "run.schema.json#/$defs/intFigure"
+        },
+        "worsened": {
+          "$ref": "run.schema.json#/$defs/intFigure"
+        },
+        "p_value": {
+          "$ref": "run.schema.json#/$defs/rateFigure"
+        },
+        "test": {
+          "const": "exact two-sided sign test on discordant pairs, alpha 0.05"
+        },
+        "steps_back": {
+          "$ref": "#/$defs/stepMoves"
+        },
+        "steps_forward": {
+          "$ref": "#/$defs/stepMoves"
+        }
+      }
+    },
+    "direction": {
+      "enum": [
+        "helps",
+        "hurts",
+        "no detectable change"
+      ]
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "base_reached",
+          "head_reached",
+          "change"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "base_reached": {
+            "$ref": "run.schema.json#/$defs/intFigure"
+          },
+          "head_reached": {
+            "$ref": "run.schema.json#/$defs/intFigure"
+          },
+          "change": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "magnitude": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "goal_rate_change",
+        "badge",
+        "source"
+      ],
+      "properties": {
+        "goal_rate_change": {
+          "type": "number"
+        },
+        "badge": {
+          "const": "uncalibrated"
+        },
+        "source": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "side": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "file",
+        "doc_sha256",
+        "goal_reached"
+      ],
+      "properties": {
+        "run_id": {
+          "type": "string"
+        },
+        "file": {
+          "type": "string"
+        },
+        "doc_sha256": {
+          "$ref": "run.schema.json#/$defs/sha256"
+        },
+        "goal_reached": {
+          "$ref": "run.schema.json#/$defs/intFigure"
+        }
+      }
+    },
+    "stepMoves": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "source",
+        "users",
+        "moves"
+      ],
+      "properties": {
+        "value": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "users": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "moves": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "user",
+              "base_furthest",
+              "head_furthest",
+              "step",
+              "steps_moved"
+            ],
+            "properties": {
+              "user": {
+                "type": "string"
+              },
+              "base_furthest": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Last step this user reached on base. null when none."
+              },
+              "head_furthest": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Last step this user reached on head. null when none."
+              },
+              "step": {
+                "type": "string",
+                "description": "The first step reached on one side and not the other. For steps_back: the step the user got past on base and stopped at on head."
+              },
+              "steps_moved": {
+                "type": "integer",
+                "description": "len(head reached) minus len(base reached). Negative for steps_back."
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

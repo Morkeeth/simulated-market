@@ -1,0 +1,770 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulated onboarding run</title>
+<meta name="description" content="Inspect saved simulated command paths and the linked workspace cohort, or import a separately declared offline study.">
+<style>
+/* Two faces, both already on the reader's machine: this page works offline.
+   The serif carries prose. Mono carries figures, file names and commands only. */
+:root{
+  --font-human:"Iowan Old Style","Charter","Sitka Text",Cambria,Georgia,serif;
+  --font-machine:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --ground:#f3f5f8;
+  --panel:#ffffff;
+  --ink:#15181d;
+  --mid:#565d68;
+  --faint:#8d949e;
+  --edge:rgba(21,24,29,.12);
+  --dot:#9aa1ab;
+  --accent:#2451c7;      /* blue pencil: the users the patch moved */
+  --good:#1b7f4c;
+  --crit:#b3261e;
+  --chip:#e7ebf1;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0f1216; --panel:#171b21; --ink:#e8ebef; --mid:#a3abb6; --faint:#6f7884;
+    --edge:rgba(232,235,239,.12); --dot:#5d6570; --accent:#86a8ff; --good:#56c790; --crit:#ff8a80;
+    --chip:#232a33; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0f1216; --panel:#171b21; --ink:#e8ebef; --mid:#a3abb6; --faint:#6f7884;
+  --edge:rgba(232,235,239,.12); --dot:#5d6570; --accent:#86a8ff; --good:#56c790; --crit:#ff8a80;
+  --chip:#232a33; color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--font-human);
+  font-size:clamp(16px,.95rem + .2vw,18px);line-height:1.55}
+.m,code,.num{font-family:var(--font-machine);font-variant-numeric:tabular-nums}
+code{font-size:.86em}
+a{color:inherit;text-decoration-thickness:1px;text-underline-offset:2px}
+h1,h2{font-weight:400;line-height:1.12;letter-spacing:-.01em;text-wrap:balance;margin:0}
+h1{font-size:clamp(28px,1.3rem + 2.4vw,46px)}
+h2{font-size:clamp(22px,1.1rem + 1vw,30px)}
+p{margin:0;max-width:65ch}
+.wrap{width:100%;max-width:1040px;margin:0 auto;padding:0 16px}
+.stack{display:flex;flex-direction:column;gap:14px}
+.small{font-size:.86rem;color:var(--mid)}
+.src{font-family:var(--font-machine);font-size:.74rem;color:var(--faint);overflow-wrap:anywhere;line-height:1.45}
+
+pre.src{white-space:pre-wrap;overflow-wrap:anywhere;max-width:100%}
+#coding-agents{min-width:0}
+
+.top{border-bottom:1px solid var(--edge);background:var(--ground)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px;flex-wrap:wrap;padding-top:8px;padding-bottom:8px}
+.top .name{font-size:.95rem;color:var(--mid)}
+button,.btn{font:inherit;font-size:.92rem;color:var(--ink);background:var(--panel);border:1px solid var(--edge);
+  border-radius:8px;padding:8px 14px;cursor:pointer}
+button:hover,.btn:hover{border-color:var(--mid)}
+button:focus-visible,input:focus-visible,.btn:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.picker input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+
+.chip{display:inline-block;font-family:var(--font-machine);font-size:.68rem;letter-spacing:.06em;
+  padding:2px 6px;border-radius:4px;background:var(--chip);color:var(--ink);vertical-align:.12em;white-space:nowrap}
+.chip.badge{background:transparent;border:1px solid var(--mid);color:var(--mid)}
+.chips{display:inline-flex;gap:4px;flex-wrap:wrap}
+
+section{padding:40px 0}
+section + section{border-top:1px solid var(--edge)}
+
+/* empty state */
+.slots{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;border-top:1px solid var(--edge)}
+.slots li{display:grid;grid-template-columns:1.4em 1fr;gap:4px 10px;padding:12px 0;border-bottom:1px solid var(--edge)}
+.slots .mark{font-family:var(--font-machine);color:var(--faint)}
+.slots li.have .mark{color:var(--good)}
+.slots .what{font-size:.95rem}
+.slots .file{grid-column:2;font-family:var(--font-machine);font-size:.8rem;color:var(--mid);overflow-wrap:anywhere}
+.cmd{font-family:var(--font-machine);font-size:.95rem;background:var(--panel);border:1px solid var(--edge);
+  border-radius:8px;padding:10px 14px;display:inline-block}
+.drop-hint{border:1px dashed var(--edge);border-radius:10px;padding:16px}
+body.dragging .drop-hint{border-color:var(--accent)}
+.err{color:var(--crit)}
+
+/* the lede */
+.meta{font-size:.9rem;color:var(--mid)}
+.verdict{font-size:clamp(19px,1rem + .6vw,23px);max-width:40ch}
+.verdict b{font-weight:600}
+
+/* the device: the same simulated readers on both versions */
+.heads{display:grid;grid-template-columns:1fr 28px 1fr;align-items:start}
+.band .strips{display:grid;grid-template-columns:2.2em minmax(0,1fr) 28px minmax(0,1fr) 2.2em;align-items:start;column-gap:6px}
+.heads{position:sticky;top:0;background:var(--ground);z-index:2;padding:10px 0;border-bottom:1px solid var(--edge)}
+.heads .col{display:flex;flex-direction:column;gap:3px;min-width:0}
+.heads .col.l{text-align:right;align-items:flex-end}
+.heads .t{font-size:1rem}
+.bands{position:relative}
+.heads,.band .strips{width:100%;max-width:640px;margin-left:auto;margin-right:auto}
+.band{padding:14px 0 16px;border-bottom:1px solid var(--edge);display:flex;flex-direction:column;gap:8px;position:relative}
+.band .label{display:flex;flex-direction:column;gap:2px;max-width:none}
+.band .label .t{font-size:.98rem}
+.band .label .t,.band .check{position:relative;z-index:2;background:var(--ground);box-decoration-break:clone;-webkit-box-decoration-break:clone;padding-right:4px}
+.band .label{align-items:flex-start}
+.band.goal .label .t{font-weight:600}
+.band .check{font-family:var(--font-machine);font-size:.72rem;color:var(--faint);overflow-wrap:anywhere}
+.strip{display:flex;flex-wrap:wrap;gap:3px;align-items:center;min-height:14px;min-width:0}
+.strip.l{flex-direction:row-reverse}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--dot);flex:none}
+.dot.fwd{background:var(--accent)}
+.dot.back{background:var(--crit)}
+.dot.goalside{box-shadow:inset 0 0 0 2px var(--ground)}
+.count{font-family:var(--font-machine);font-size:.8rem;color:var(--mid);font-variant-numeric:tabular-nums;line-height:14px}
+.count.l{text-align:right}
+.axis{justify-self:center;width:1px;align-self:stretch;background:var(--edge)}
+svg.links{position:absolute;inset:0;pointer-events:none;overflow:visible;z-index:1}
+svg.links path{fill:none;stroke-width:1.2;opacity:.55}
+svg.links path.fwd{stroke:var(--accent)}
+svg.links path.back{stroke:var(--crit);stroke-dasharray:3 2}
+.band.placeholder{border-bottom:1px dashed var(--edge)}
+.band.placeholder .label .t{color:var(--mid)}
+.backlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.backlist .id{font-family:var(--font-machine);font-size:.86rem}
+.key{display:flex;gap:16px;flex-wrap:wrap}
+.key span{display:inline-flex;align-items:center;gap:6px}
+
+/* quotes */
+.qcols{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.qgroup{display:flex;flex-direction:column;gap:14px}
+.q{display:flex;flex-direction:column;gap:6px;padding:14px 16px;background:var(--panel);border:1px solid var(--edge);border-radius:10px;margin:0}
+.q .who{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;font-size:.84rem;color:var(--mid)}
+.q .text{font-style:italic}
+.q .ground{font-size:.84rem;color:var(--mid)}
+
+/* scoring */
+form.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;background:var(--panel);
+  border:1px solid var(--edge);border-radius:10px;padding:16px}
+fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;min-width:0}
+legend{font-size:.95rem;padding:0;margin-bottom:6px}
+.pair{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+input[type=number],input[type=text]{font:inherit;font-family:var(--font-machine);font-size:.9rem;color:var(--ink);
+  background:var(--ground);border:1px solid var(--edge);border-radius:6px;padding:7px 8px}
+input[type=number]{width:5.2em}
+.full{grid-column:1 / -1}
+input[type=text]{width:100%;font-family:var(--font-human);font-size:.95rem}
+.tablewrap{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;padding:8px 10px 8px 0;border-bottom:1px solid var(--edge);vertical-align:top}
+th{font-weight:400;color:var(--mid);font-size:.82rem}
+td.m,th.m{white-space:nowrap}
+.right{color:var(--good)} .wrong{color:var(--crit)}
+td button{font-size:.8rem;padding:3px 8px}
+tbody tr:not(.srcrow) td{border-bottom:0;padding-bottom:2px}
+tr.srcrow td{padding-top:0}
+.outcome{display:flex;flex-direction:column;gap:8px;padding:16px 0 0}
+.outcome .v{font-size:clamp(20px,1rem + .8vw,26px)}
+.arms{display:grid;grid-template-columns:auto auto auto;gap:4px 18px;justify-content:start;font-size:.92rem}
+.arms .h{color:var(--mid);font-size:.8rem}
+
+@media (max-width:720px){
+  .qcols{grid-template-columns:1fr}
+  form.row{grid-template-columns:1fr}
+  section{padding:30px 0}
+  .dot{width:8px;height:8px}
+  .strip{gap:2px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+<script src="score.js"></script>
+</head>
+<body>
+<div class="top">
+  <div class="wrap">
+    <span class="name">Simulated onboarding run</span>
+    <a class="btn" href="workspace.html">New comparison</a>
+    <label class="btn picker">Choose run files
+      <input id="files" type="file" accept=".json,application/json" multiple>
+    </label>
+  </div>
+</div>
+
+<main>
+  <section id="empty">
+    <div class="wrap stack">
+      <h1>No run loaded.</h1>
+      <p>This page reads the two run files and delta from <code>make demo</code> or <code>python3 -m sim compare</code>. It shows where simulated users got stuck on a quickstart before and after a doc change. Nothing here is sample data: until you choose the files, there is nothing to show.</p>
+      <ul class="slots" id="slots"></ul>
+      <p>Make them in the project folder:</p>
+      <div><span class="cmd">make demo</span></div>
+      <div class="drop-hint stack">
+        <p>Then use <b>Choose run files</b> above, or drop the files on this page. You can select every <code>.json</code> in <code>runs/</code> at once. Files this page does not need are left out.</p>
+        <p class="small">The files are read in this browser. Nothing is uploaded.</p>
+      </div>
+      <p id="load-errors" class="err" hidden></p>
+    </div>
+  </section>
+
+  <div id="report" hidden></div>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- theme override for anyone who wants the other theme: #light or #dark ----------
+  function applyHashTheme() {
+    var t = location.hash.replace("#", "");
+    if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+  }
+  applyHashTheme();
+  window.addEventListener("hashchange", applyHashTheme);
+
+  // ---------- storage that may be missing ----------
+  var store = {
+    ok: (function () { try { var k = "__t"; localStorage.setItem(k, k); localStorage.removeItem(k); return true; } catch (e) { return false; } })(),
+    get: function (k) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
+  };
+
+  // ---------- tiny DOM helper; every file string goes in as text ----------
+  function h(tag, attrs, kids) {
+    var el = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      var v = attrs[k];
+      if (v === null || v === undefined || v === false) return;
+      if (k === "class") el.className = v;
+      else if (k === "text") el.textContent = v;
+      else if (k.slice(0, 2) === "on") el.addEventListener(k.slice(2), v);
+      else el.setAttribute(k, v === true ? "" : v);
+    });
+    (kids || []).forEach(function (c) {
+      if (c === null || c === undefined || c === false) return;
+      el.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+    });
+    return el;
+  }
+  function chips(labels, extra) {
+    return h("span", { class: "chips" }, (labels || []).map(function (l) { return h("span", { class: "chip", text: l }); })
+      .concat(extra ? [extra] : []));
+  }
+  function plural(n, one, many) { return n === 1 ? one : many; }
+
+  // ---------- what was loaded ----------
+  var state = { delta: null, deltaName: null, runs: {}, errors: [], workspace: null, trialSummary: null };
+
+  function kindOf(doc) {
+    if (!doc || typeof doc !== "object") return null;
+    if (doc.control && doc.paired && doc.base && doc.head && doc.direction) return "delta";
+    if (doc.run_id && Array.isArray(doc.users) && Array.isArray(doc.steps)) return "run";
+    return null;
+  }
+
+  function readFiles(list) {
+    var files = Array.prototype.slice.call(list || []);
+    state.errors = [];
+    return Promise.all(files.map(function (f) {
+      return f.text().then(function (txt) {
+        var doc;
+        try { doc = JSON.parse(txt); } catch (e) { state.errors.push(f.name + " is not JSON."); return; }
+        var kind = kindOf(doc);
+        if (!kind) return; // timing files, receipts and anything else: not needed here
+        if (!Array.isArray(doc.labels) || doc.labels.indexOf("SIMULATED") < 0) {
+          state.errors.push(f.name + " has no SIMULATED label, so it is not shown.");
+          return;
+        }
+        if (kind === "delta") {
+          if (!doc.control || doc.control.identical !== true) {
+            state.errors.push(f.name + ": the control run did not match, so this comparison is not shown.");
+            return;
+          }
+          state.delta = doc; state.deltaName = f.name;
+        } else if (!/\.control\.json$/.test(f.name)) {
+          state.runs[doc.run_id] = { doc: doc, name: f.name };
+        }
+      });
+    })).then(render);
+  }
+
+  // The loopback workspace can pass actual saved files to its embedded offline reader.
+  // No request or storage credential is added to this portable page.
+  window.addEventListener("message", function (event) {
+    if (window.parent === window || event.source !== window.parent || event.origin !== location.origin ||
+        location.protocol !== "http:" || location.hostname !== "127.0.0.1" ||
+        !event.data || !["local-comparison", "workspace-trial-state"].includes(event.data.type)) return;
+    if (event.data.type === "workspace-trial-state") {
+      if (!state.workspace || !event.data.context || event.data.context.jobId !== state.workspace.jobId || event.data.context.nonce !== state.workspace.nonce) return;
+      state.trialSummary = event.data.trial; render(); return;
+    }
+    if (!event.data.context || !/^[a-f0-9]{24}$/.test(event.data.context.jobId) ||
+        typeof event.data.context.nonce !== "string") return;
+    state.workspace = event.data.context; state.trialSummary = event.data.trial;
+    document.getElementById("files").disabled = true;
+    readFiles(["base", "head", "delta"].map(function (name) {
+      return new File([JSON.stringify(event.data.files[name])], name + ".json", { type: "application/json" });
+    }));
+  });
+
+  document.getElementById("files").addEventListener("change", function (e) { if (!state.workspace) readFiles(e.target.files); e.target.value = ""; });
+  document.addEventListener("dragover", function (e) { e.preventDefault(); document.body.classList.add("dragging"); });
+  document.addEventListener("dragleave", function (e) { if (!e.relatedTarget) document.body.classList.remove("dragging"); });
+  document.addEventListener("drop", function (e) {
+    e.preventDefault(); document.body.classList.remove("dragging");
+    if (!state.workspace && e.dataTransfer && e.dataTransfer.files) readFiles(e.dataTransfer.files);
+  });
+
+  // ---------- empty and partial states ----------
+  function renderSlots() {
+    var d = state.delta;
+    var baseId = d && d.base.run_id, headId = d && d.head.run_id;
+    var slots = [
+      { what: "The comparison", file: d ? state.deltaName : "runs/delta-<base>-<head>.json", have: !!d },
+      { what: "The run on the base doc", file: d ? d.base.file : "runs/<id>.json, named in the comparison", have: !!(d && state.runs[baseId]) },
+      { what: "The run on the head doc", file: d ? d.head.file : "runs/<id>.json, named in the comparison", have: !!(d && state.runs[headId]) }
+    ];
+    var ul = document.getElementById("slots");
+    ul.textContent = "";
+    slots.forEach(function (s) {
+      ul.appendChild(h("li", { class: s.have ? "have" : "" }, [
+        h("span", { class: "mark", text: s.have ? "ok" : "--", "aria-label": s.have ? "loaded" : "missing" }),
+        h("span", { class: "what", text: s.what + (s.have ? "" : ": missing") }),
+        h("span", { class: "file", text: s.file })
+      ]));
+    });
+    var errs = document.getElementById("load-errors");
+    errs.hidden = !state.errors.length;
+    errs.textContent = state.errors.join(" ");
+    return slots.every(function (s) { return s.have; });
+  }
+
+  // ---------- helpers over the run files ----------
+  function policyLine(run) {
+    var p = run.policy || {};
+    if (p.name === "LOCAL-SCRIPTED") return "scripted readers. No model ran";
+    if (p.name === "LOCAL-MODEL") return "a local model, " + (p.model && p.model.name ? p.model.name : "name not in the file") + ", on the machine that made the run";
+    if (p.name === "TOKEN-FACTORY") return (p.model && p.model.name ? p.model.name : "a hosted model") + " through Token Factory";
+    return "a policy this page does not know (" + p.name + ")";
+  }
+  function distinctPaths(run) {
+    var seen = {};
+    run.users.forEach(function (u) { seen[JSON.stringify(u.log.map(function (e) { return [e.action, e.detail]; }))] = 1; });
+    return Object.keys(seen).length;
+  }
+  function stopIndex(run, user) {
+    // index into steps of the step the user did not reach; steps.length means the goal
+    if (user.dropped_at === null) return run.steps.length;
+    for (var i = 0; i < run.steps.length; i++) if (run.steps[i].id === user.dropped_at) return i;
+    return -1;
+  }
+
+  // ---------- the report ----------
+  var linkRedraw = null;
+
+  function render() {
+    var ready = renderSlots();
+    var report = document.getElementById("report");
+    document.getElementById("empty").hidden = ready;
+    report.hidden = !ready;
+    if (!ready) { report.textContent = ""; return; }
+
+    var d = state.delta;
+    var base = state.runs[d.base.run_id].doc, head = state.runs[d.head.run_id].doc;
+    var baseName = d.base.file, headName = d.head.file;
+    var n = d.n.value, seed = d.seed;
+    report.textContent = "";
+
+    // lede
+    var dir = d.direction;
+    var improved = d.paired.improved.value, worsened = d.paired.worsened.value;
+    var pv = d.paired.p_value.value;
+    var pText = pv < 0.001 ? "p < 0.001" : "p = " + pv.toFixed(3);
+    var headline = dir === "helps" ? "More simulated readers reached the goal with the patch." : dir === "hurts" ? "Fewer simulated readers reached the goal with the patch." : "No detectable change in this simulation.";
+    var bGoal = d.base.goal_reached.value, hGoal = d.head.goal_reached.value;
+    var target = base.target;
+
+    report.appendChild(h("section", null, [h("div", { class: "wrap stack" }, [
+      h("p", { class: "meta" }, [
+        target.name + ", " + target.section.replace(/^#+\s*/, "") + ", ",
+        target.scenario ? h("span", { text: "frozen inputs (see inputs.json)" })
+          : h("a", { href: target.doc_url, text: "pinned copy of the doc" }),
+        ". Goal:"
+      ]),
+      h("h1", { text: target.goal }),
+      h("p", { class: "verdict" }, [
+        h("b", { text: headline }), " ",
+        "The same " + n + " simulated users ran both versions with the same seeds. ",
+        h("span", { class: "num", text: String(improved) }), " reached the goal only with the patch, ",
+        h("span", { class: "num", text: String(worsened) }), " only without it. ",
+        chips(d.labels)
+      ]),
+      h("p", { class: "src", text: "Source: " + state.deltaName + ", seed " + seed + ". Exact two-sided sign test on users whose outcome changed, " + pText + ". A direction is called only when p < 0.05." }),
+      h("p", null, [
+        "Reached the goal: ",
+        h("span", { class: "num", text: bGoal + " of " + n }), " on the base doc, ",
+        h("span", { class: "num", text: hGoal + " of " + n }), " with the patch. ",
+        h("span", { class: "chip badge", text: "UNCALIBRATED" })
+      ]),
+      h("p", { class: "small", text: "This change was observed in a simulated population. Neither its direction nor its size establishes what real people will do. Scripted readers follow fixed rules; their command evidence can reveal a docs execution gap. Use a separate human study to compare with observed use." }),
+      h("p", { class: "small", text: "Simulated users: " + policyLine(base) + " (" + base.policy.label + "). Sandbox: " + base.backends.sandbox.name + " (" + base.backends.sandbox.label + "). Cost shown before the run: " + (base.cost.value === null ? "unknown" : base.cost.value) + " " + base.cost.unit + " (" + base.cost.label + "). The personas are assumed, not fitted to real people." })
+    ])]));
+
+    // the device
+    var bandsEl = h("div", { class: "bands" });
+    var svgNS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("class", "links");
+    svg.setAttribute("aria-hidden", "true");
+
+    var headUsers = {}; head.users.forEach(function (u) { headUsers[u.id] = u; });
+    var baseUsers = {}; base.users.forEach(function (u) { baseUsers[u.id] = u; });
+    var moves = []; // {id, from, to}
+    var bStop = {}, hStop = {};
+    base.users.forEach(function (u) { bStop[u.id] = stopIndex(base, u); });
+    head.users.forEach(function (u) { hStop[u.id] = stopIndex(head, u); });
+    Object.keys(bStop).forEach(function (id) {
+      if (id in hStop && hStop[id] !== bStop[id]) moves.push({ id: id, from: bStop[id], to: hStop[id] });
+    });
+    function moveClass(id) {
+      if (!(id in bStop) || !(id in hStop) || bStop[id] === hStop[id]) return "";
+      return hStop[id] > bStop[id] ? "fwd" : "back";
+    }
+
+    var steps = base.steps;
+    var bandCount = steps.length + 1;
+    var dotEls = { l: {}, r: {} };
+    for (var i = 0; i < bandCount; i++) {
+      var isGoal = i === steps.length;
+      var title = isGoal ? "Reached the goal" : "Stuck at: " + steps[i].title;
+      var check = isGoal ? "Checked by: " + steps[steps.length - 1].check : "Checked by: " + steps[i].check;
+      var left = base.users.filter(function (u) { return bStop[u.id] === i; });
+      var right = head.users.filter(function (u) { return hStop[u.id] === i; });
+      // users the patch moved sit nearest the middle, so their lines stay short
+      function order(side) {
+        return function (a, b) {
+          var ma = moveClass(a.id) ? 0 : 1, mb = moveClass(b.id) ? 0 : 1;
+          if (ma !== mb) return ma - mb;
+          var oa = side === "l" ? (hStop[a.id] || 0) : (bStop[a.id] || 0);
+          var ob = side === "l" ? (hStop[b.id] || 0) : (bStop[b.id] || 0);
+          if (oa !== ob) return oa - ob;
+          return a.id < b.id ? -1 : 1;
+        };
+      }
+      left.sort(order("l")); right.sort(order("r"));
+      function strip(side, users, runName, verb) {
+        var el = h("div", {
+          class: "strip " + side, role: "img",
+          "aria-label": users.length + " of " + n + " simulated users " + verb + ", from " + runName
+        });
+        users.forEach(function (u) {
+          var mc = moveClass(u.id);
+          var dot = h("span", { class: "dot" + (mc ? " " + mc : "") + (isGoal ? " goalside" : ""),
+            title: u.id + ": " + title.toLowerCase() + " (" + (side === "l" ? "base" : "head") + ")" });
+          dotEls[side][u.id] = dot;
+          el.appendChild(dot);
+        });
+        return el;
+      }
+      bandsEl.appendChild(h("div", { class: "band" + (isGoal ? " goal" : "") }, [
+        h("div", { class: "label" }, [h("span", { class: "t", text: title }), h("span", { class: "check", text: check })]),
+        h("div", { class: "strips" }, [
+          h("span", { class: "count l", text: String(left.length), title: "Counted from users[].dropped_at in " + baseName }),
+          strip("l", left, baseName, isGoal ? "reached the goal on the base doc" : "got stuck here on the base doc"),
+          h("span", { class: "axis" }),
+          strip("r", right, headName, isGoal ? "reached the goal with the patch" : "got stuck here with the patch"),
+          h("span", { class: "count r", text: String(right.length), title: "Counted from users[].dropped_at in " + headName })
+        ])
+      ]));
+    }
+    // Read the second population from the actual run files, never from a sample.
+    var agentBase = (base.populations || []).find(function (p) { return p.id === "coding_agents"; });
+    var agentHead = (head.populations || []).find(function (p) { return p.id === "coding_agents"; });
+    if (agentBase && agentHead && agentBase.n.value > 0 && agentHead.n.value > 0) {
+      var agentRows = [h("div", { class: "label" }, [
+        h("span", { class: "t", text: "Coding agents · " + Array.from(new Set((agentBase.labels || []).concat(agentHead.labels || []))).join(" · ") }),
+        h("span", { class: "check", text: agentBase.backend.name + ". Base → head; counts over each population." })
+      ])];
+      steps.forEach(function (step) {
+        var b = agentBase.steps.find(function (x) { return x.id === step.id; });
+        var a = agentHead.steps.find(function (x) { return x.id === step.id; });
+        agentRows.push(h("p", { class: "small", text: step.title + ": " +
+          (b ? b.reached.value + "/" + agentBase.n.value : "unavailable") + " → " +
+          (a ? a.reached.value + "/" + agentHead.n.value : "unavailable") }));
+      });
+      [["Base", agentBase], ["Head", agentHead]].forEach(function (pair) {
+        (pair[1].users || []).forEach(function (u) {
+          var log = h("details", {}, [h("summary", { text: pair[0] + " agent " + u.id + ": " + u.exit_status })]);
+          (u.log || []).forEach(function (e) {
+            log.appendChild(h("pre", { class: "src", text: e.action + ": " + e.detail +
+              (e.exit_code === null ? "" : "\nexit " + e.exit_code) +
+              (e.stdout_excerpt ? "\n" + e.stdout_excerpt : "") }));
+          });
+          agentRows.push(log);
+        });
+      });
+      agentRows.push(h("p", { class: "src", text: "Source: populations[coding_agents] in " + baseName + " and " + headName + ". These simulated results are not evidence about real developers or other coding agents." }));
+      bandsEl.appendChild(h("div", { class: "stack", style: "padding:20px 0", id: "coding-agents" }, agentRows));
+    } else {
+      bandsEl.appendChild(h("div", { class: "band placeholder" }, [h("div", { class: "label" }, [
+        h("span", { class: "t", text: "Coding agents: not run in both files" }),
+        h("span", { class: "check", text: target.scenario
+          ? "To include coding agents for this project, choose Prepare another revision in your private workspace, select coding agents, then preview again. Local agents require the cached model and agent runtime, with the workspace started using --allow-agents. Sponsor execution requires its separate authorization."
+          : "For the bundled demo, run make demo AGENTS=1 after make agent and make model to compare both populations." })
+      ])]));
+    }
+    bandsEl.appendChild(svg);
+
+    var unplacedL = base.users.filter(function (u) { return bStop[u.id] < 0; }).length;
+    var unplacedR = head.users.filter(function (u) { return hStop[u.id] < 0; }).length;
+    var fwd = moves.filter(function (m) { return m.to > m.from; }).length;
+    var back = moves.length - fwd;
+    // Step back: read from the delta when it carries paired.steps_back (delta schema 0.2.0).
+    // Older delta files do not, so the count computed above from the two run files is the fallback.
+    var stepTitle0 = {}; steps.forEach(function (st) { stepTitle0[st.id] = st.title; });
+    var sb = d.paired.steps_back;
+    var backSrc = "computed in this page from users[].dropped_at in both run files";
+    var backMismatch = null;
+    if (sb && typeof sb.value === "number") {
+      if (sb.value !== back) backMismatch = "The comparison file says " + sb.value + " " + plural(sb.value, "user", "users") + " got stuck earlier with the patch. The two run files say " + back + ". Check that these files belong together.";
+      back = sb.value;
+      backSrc = "paired.steps_back in " + state.deltaName;
+    }
+    var backMoves = sb && sb.moves ? sb.moves : moves.filter(function (m) { return m.to < m.from; }).map(function (m) {
+      return { user: m.id, base_furthest: m.from > 0 ? steps[m.from - 1].id : null, step: steps[m.to].id };
+    });
+    var pb = distinctPaths(base), ph = distinctPaths(head);
+
+    report.appendChild(h("section", null, [h("div", { class: "wrap stack" }, [
+      h("h2", { text: "Where the same " + n + " simulated readers got stuck" }),
+      h("p", { text: "Each dot is one simulated user. Left is the base doc, right is the head doc. A row of dots is how many got stuck at that step. A line joins the two places one user stopped, when the patch moved them." }),
+      h("div", { class: "heads" }, [
+        h("div", { class: "col l" }, [h("span", { class: "t", text: "Base doc" }), chips(base.labels), h("span", { class: "src", text: baseName + ", seed " + base.seed })]),
+        h("span"),
+        h("div", { class: "col r" }, [h("span", { class: "t", text: "Head doc" }), chips(head.labels), h("span", { class: "src", text: headName + ", seed " + head.seed })])
+      ]),
+      bandsEl,
+      h("div", { class: "key small" }, [
+        h("span", null, [h("span", { class: "dot fwd" }), fwd + " " + plural(fwd, "user", "users") + " moved further with the patch"]),
+        h("span", null, [h("span", { class: "dot back" }), back + " " + plural(back, "user", "users") + " got stuck earlier with the patch"]),
+        h("span", null, [h("span", { class: "dot" }), (n - moves.length) + " stopped at the same place"])
+      ]),
+      (unplacedL || unplacedR) ? h("p", { class: "err", text: "Not shown: " + unplacedL + " users on the base doc and " + unplacedR + " with the patch stopped at a step that is not in the run file's steps. The counts above leave them out." }) : null,
+      back ? h("p", { class: "small", text: "The direction above counts only the goal. " + back + " " + plural(back, "user", "users") + " got stuck at an earlier step with the patch, which the goal count cannot show." }) : null,
+      back ? h("ul", { class: "backlist small" }, backMoves.map(function (m) {
+        return h("li", null, [
+          h("span", { class: "id", text: m.user }),
+          " got past " + (m.base_furthest ? "\u201c" + (stepTitle0[m.base_furthest] || m.base_furthest) + "\u201d" : "no step") +
+          " on the base doc and stopped at \u201c" + (stepTitle0[m.step] || m.step) + "\u201d with the patch. ",
+          chips(d.labels)
+        ]);
+      })) : null,
+      back ? h("p", { class: "src", text: "Step back: " + backSrc + "." }) : null,
+      backMismatch ? h("p", { class: "err", text: backMismatch }) : null,
+      h("p", { class: "src", text: "Counts: users[].dropped_at in each run file. Moves: the same user id in both files. The step checks are what was run in each user's sandbox after the session." }),
+      h("p", { class: "small", text: "Distinct paths through the doc: " + pb + " of " + n + " users on the base doc, " + ph + " of " + n + " with the patch. When most users take the same few paths, the result mostly shows how the assumed personas split between them." })
+    ])]));
+
+    function drawLinks() {
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+      var box = bandsEl.getBoundingClientRect();
+      svg.setAttribute("width", box.width); svg.setAttribute("height", box.height);
+      moves.forEach(function (m) {
+        var a = dotEls.l[m.id], b = dotEls.r[m.id];
+        if (!a || !b) return;
+        var ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+        var x1 = ra.left + ra.width / 2 - box.left, y1 = ra.top + ra.height / 2 - box.top;
+        var x2 = rb.left + rb.width / 2 - box.left, y2 = rb.top + rb.height / 2 - box.top;
+        var mid = (x1 + x2) / 2;
+        var p = document.createElementNS(svgNS, "path");
+        p.setAttribute("d", "M" + x1 + "," + y1 + " C" + mid + "," + y1 + " " + mid + "," + y2 + " " + x2 + "," + y2);
+        p.setAttribute("class", m.to > m.from ? "fwd" : "back");
+        svg.appendChild(p);
+      });
+    }
+    linkRedraw = drawLinks;
+    requestAnimationFrame(drawLinks);
+
+    // Inspect exact paired participant logs; dots alone cannot explain a changed result.
+    var logSection = h("div", { class: "wrap stack" }, [h("h2", { text: "A participant's actual path" }),
+      h("p", { class: "small", text: "These are the saved commands and observations, not an explanation generated afterward. Scripted readers are SIMULATED and LOCAL." })]);
+    var readerSelect = h("select", { "aria-label": "Simulated reader to inspect", style: "max-width:100%;font:inherit;padding:8px;margin:12px 0" });
+    var readerLogs = h("div", {});
+    base.users.slice().sort(function(a,b){ return Number(!!moveClass(b.id))-Number(!!moveClass(a.id)); }).forEach(function(u){
+      readerSelect.appendChild(h("option", { value:u.id, text:u.id+(moveClass(u.id)?" · changed path":" · same stopping point") }));
+    });
+    function drawReaderLogs(){
+      readerLogs.replaceChildren();
+      [["Current instructions",baseUsers[readerSelect.value]],["Proposed instructions",headUsers[readerSelect.value]]].forEach(function(pair){
+        var d=h("details",{open:true},[h("summary",{text:pair[0]+" · "+readerSelect.value})]);
+        (pair[1] ? pair[1].log : []).forEach(function(e){d.appendChild(h("pre",{class:"src",text:e.action+": "+e.detail+
+          (e.exit_code==null?"":"\nExit: "+e.exit_code)+(e.stdout_excerpt?"\nOutput: "+e.stdout_excerpt:"")}));});
+        readerLogs.appendChild(d);
+      });
+    }
+    readerSelect.addEventListener("change",drawReaderLogs);
+    logSection.appendChild(readerSelect);logSection.appendChild(readerLogs);report.appendChild(h("section",{},[logSection]));drawReaderLogs();
+
+    // quotes
+    function quoteGroups(run, side) {
+      var groups = {};
+      var order = [];
+      run.quotes.forEach(function (q) {
+        var key = (q.step || "") + "\u0000" + q.text;
+        if (!groups[key]) { groups[key] = { q: q, count: 0 }; order.push(key); }
+        groups[key].count += 1;
+      });
+      order.sort(function (a, b) { return groups[b].count - groups[a].count; });
+      var stepTitle = {}; run.steps.forEach(function (s) { stepTitle[s.id] = s.title; });
+      return h("div", { class: "qgroup" }, [h("span", { class: "t", text: side })].concat(order.map(function (k) {
+        var g = groups[k], q = g.q;
+        return h("figure", { class: "q" }, [
+          h("div", { class: "who" }, [
+            h("span", { class: "num", text: g.count + " " + plural(g.count, "user", "users") }),
+            h("span", { text: q.step ? "stuck at: " + (stepTitle[q.step] || q.step) : "reached the goal" }),
+            chips(q.labels)
+          ]),
+          h("p", { class: "text", text: q.text }),
+          q.grounding ? h("p", { class: "ground" }, [
+            "Related public issue, copied by hand (" + q.grounding.label + "): ",
+            h("a", { href: q.grounding.url, text: q.grounding.url.replace(/^https?:\/\//, "") }),
+            ". It shows a similar real report. It does not prove this quote."
+          ]) : null
+        ]);
+      })));
+    }
+    var scripted = base.policy.name === "LOCAL-SCRIPTED";
+    report.appendChild(h("section", null, [h("div", { class: "wrap stack" }, [
+      h("h2", { text: "What they said" }),
+      h("p", { class: "small", text: scripted
+        ? "These quotes are SIMULATED. With scripted readers, each quote is a fixed sentence picked by what happened in the user's sandbox. No model wrote them."
+        : "These quotes are SIMULATED. A model wrote them from what happened in the user's sandbox." }),
+      h("div", { class: "qcols" }, [quoteGroups(base, "Base doc"), quoteGroups(head, "Head doc")]),
+      h("p", { class: "src", text: "Source: quotes[] in " + baseName + " and " + headName + "." })
+    ])]));
+
+    // scoring
+    report.appendChild(renderScoring(d));
+    window.scrollTo(0, 0);
+  }
+
+  window.addEventListener("resize", function () { if (linkRedraw) linkRedraw(); });
+
+  // ---------- scoring against real outcomes ----------
+  function renderScoring(d) {
+    var sec = h("section", null);
+    var inner = h("div", { class: "wrap stack" });
+    sec.appendChild(inner);
+    inner.appendChild(h("h2", { text: "Compare with observed use" }));
+    if (state.workspace) {
+      var context = state.workspace, trial = state.trialSummary || {state:"none"};
+      inner.appendChild(h("h3", {text:trial.state === "none" ? "No saved human trial yet" : trial.state === "closed" ? "Saved human cohort: closed" : "Saved human cohort: collecting"}));
+      if (trial.totals) {
+        inner.appendChild(h("p", {text:trial.recruitment}));
+        ["base", "head"].forEach(function(arm){var t=trial.totals[arm];inner.appendChild(h("p", {text:(arm==="base"?"Current":"Proposed")+" instructions: "+t.reached+" of "+t.n+" reported sessions reached the goal; "+t.pending+" pending, "+t.withdrawn+" withdrew."}));});
+        inner.appendChild(h("p", {text:trial.state==="closed" ? "Reported direction: "+trial.observed+". Cohort outcome rows: "+trial.cohortRows+". Calibration: "+trial.verdict+". Magnitude: UNCALIBRATED." : "No cohort outcome is scored until every slot is accounted for and the trial closes."}));
+      }
+      inner.appendChild(h("p", { text: "This saved comparison has one human-outcome route: its frozen cohort in your private workspace. Each distinct consenting person tries one assigned document. Observations and corrections stay with the saved comparison, including after a service restart." }));
+      inner.appendChild(h("button", { type: "button", text: "Open this comparison's saved human trial", onclick: function () {
+        window.parent.postMessage({type: "open-human-trial", jobId: context.jobId, nonce: context.nonce}, location.origin);
+      }}));
+      inner.appendChild(h("p", { class: "small", text: "No separate outcome form or browser-only record is used here. The trial shows its reported observations and cohort-level score. Simulated results remain uncalibrated." }));
+      return sec;
+    }
+    var oldKey = "outcomes:" + d.base.doc_sha256 + ":" + d.head.doc_sha256;
+    var key = "offline-import:" + d.base.doc_sha256 + ":" + d.head.doc_sha256;
+    var memoryRows = [];
+    function load() { return store.ok ? (store.get(key) || []) : memoryRows; }
+    function save(rows) { if (store.ok) store.set(key, rows); else memoryRows = rows; }
+    inner.appendChild(h("p", { text: "Offline study import, separate from the workspace's saved cohort. Import previously collected study rows and name their design. This viewer does not collect sessions or verify participant independence. Crossover and before/after studies have different biases; never merge designs or repeatedly import the same cohort as new evidence." }));
+    var design = h("select", { id: "study-design" }, [
+      h("option", {value:"",text:"Choose the study design"}),
+      h("option", {value:"parallel-single-arm",text:"Distinct people, one document each"}),
+      h("option", {value:"crossover",text:"Same people tried both documents (learning/order bias)"}),
+      h("option", {value:"observational-before-after",text:"Separate before/after observations (time/confounding bias)"})
+    ]);
+    var input = h("input", { type: "file", id: "study-import", accept: ".jsonl,application/x-ndjson" });
+    var err = h("p", { class: "err", hidden: true });
+    inner.appendChild(h("label", {for:"study-design",text:"Design used for these observations"})); inner.appendChild(design);
+    inner.appendChild(h("label", {for:"study-import",text:"Import an outcome JSONL file (replaces this browser's imported set)"})); inner.appendChild(input); inner.appendChild(err);
+    input.addEventListener("change", async function () {
+      try {
+        if (!design.value) throw Error("Choose the study design before importing.");
+        if (!input.files[0] || input.files[0].size > 1000000) throw Error("Choose a JSONL file under 1 MB.");
+        var rows = (await input.files[0].text()).split(/\r?\n/).filter(function(x){return x.trim();}).map(JSON.parse);
+        if (!rows.length || rows.length > 1000) throw Error("Choose between 1 and 1000 outcome rows.");
+        var seen = new Set();
+        rows.forEach(function(row){
+          window.Calib.checkRow(row);
+          if(row.base_doc_sha256 !== d.base.doc_sha256 || row.head_doc_sha256 !== d.head.doc_sha256) throw Error("A row belongs to different documents.");
+          if(typeof row.source !== "string" || !row.source.trim()) throw Error("Every row needs a source.");
+          if(row.study_design && row.study_design !== design.value) throw Error("The selected design does not match a row. Do not pool study designs.");
+          if(row.trial_id && seen.has(row.trial_id)) throw Error("The same trial appears twice.");
+          if(row.trial_id) seen.add(row.trial_id);
+          row.study_design=design.value;
+        });
+        save(rows); err.hidden=true; draw();
+      } catch(e) {err.hidden=false;err.textContent="Not imported. "+e.message;}
+      input.value="";
+    });
+    var legacy = store.get(oldKey) || [];
+    if (legacy.length) inner.appendChild(h("div", null, [
+      h("p", {class:"small",text:legacy.length+" legacy browser rows have no declared study design and are excluded. Export them for review; import only after identifying their design."}),
+      h("button", {type:"button",text:"Export unclassified legacy rows",onclick:function(){
+        var a=h("a",{href:URL.createObjectURL(new Blob([legacy.map(JSON.stringify).join("\n")+"\n"],{type:"application/x-ndjson"})),download:"unclassified-legacy-outcomes.jsonl"});a.click();
+      }})
+    ]));
+    var out = h("div", { class: "outcome" }); inner.appendChild(out);
+    inner.appendChild(h("p", {class:"small",text:"Imported rows remain in this browser only. They are not written into the workspace's cohort or simulation files, and nothing is sent. The score describes these imported rows; study validity and independence are not established by it."}));
+
+    function draw() {
+      var rows = load();
+      var r = window.Calib.score(d, rows);
+      out.textContent = "";
+      if (rows.length) {
+        var tbody = h("tbody");
+        r.rows.forEach(function (sr) {
+          var raw = rows[sr.index];
+          tbody.appendChild(h("tr", null, [
+            h("td", { class: "m", text: String(sr.index + 1) }),
+            h("td", { class: "m", text: raw.base.reached + "/" + raw.base.n + " to " + raw.head.reached + "/" + raw.head.n }),
+            h("td", { text: sr.observed }),
+            h("td", { class: sr.simulator, text: sr.simulator }),
+            h("td", { class: sr.silent_null, text: sr.silent_null })
+          ]));
+          tbody.appendChild(h("tr", { class: "srcrow" }, [
+            h("td"),
+            h("td", { colspan: "4" }, [
+              h("span", { class: "small", text: "Study design: " + raw.study_design + ". Source: " + (raw.source || "not given") + " " }),
+              h("button", { type: "button", text: "Remove", onclick: function () { var all = load(); all.splice(sr.index, 1); save(all); draw(); } })
+            ])
+          ]));
+        });
+        out.appendChild(h("div", { class: "tablewrap" }, [h("table", null, [
+          h("thead", null, [h("tr", null, ["#", "Reached", "Observed", "Simulator", "Silent_null"].map(function (t) { return h("th", { text: t }); }))]),
+          tbody
+        ])]));
+        if (r.rejected.length) out.appendChild(h("p", { class: "err", text: r.rejected.length + " stored " + plural(r.rejected.length, "row was", "rows were") + " not scored: " + r.rejected.map(function (x) { return x.reason; }).join("; ") + "." }));
+      }
+      var predicted = d.direction === "no detectable change" ? "no detectable change" : "the patch " + d.direction;
+      out.appendChild(h("div", { class: "arms" }, [
+        h("span", { class: "h", text: "Arm" }), h("span", { class: "h", text: "Right" }), h("span", { class: "h", text: "Wrong" }),
+        h("span", { text: "Simulator (predicts " + predicted + ")" }), h("span", { class: "num", text: String(r.arms.simulator.right) }), h("span", { class: "num", text: String(r.arms.simulator.wrong) }),
+        h("span", { text: "Silent_null (predicts no change)" }), h("span", { class: "num", text: String(r.arms.silent_null.right) }), h("span", { class: "num", text: String(r.arms.silent_null.wrong) })
+      ]));
+      var vword = r.verdict.charAt(0).toUpperCase() + r.verdict.slice(1);
+      out.appendChild(h("p", { class: "v" }, [vword + ". ", h("span", { class: "num small", text: "n = " + r.n })]));
+      out.appendChild(h("p", { text: r.reason.replace(/^[^.]*\.\s*/, "") }));
+      if (r.n) out.appendChild(h("p", { class: "small" }, [
+        "Size error, mean absolute error in the goal rate change: simulator ",
+        h("span", { class: "num", text: r.arms.simulator.abs_error.toFixed(3) }), ", silent_null ",
+        h("span", { class: "num", text: r.arms.silent_null.abs_error.toFixed(3) }), ". ",
+        h("span", { class: "chip badge", text: "UNCALIBRATED" })
+      ]));
+      out.appendChild(h("p", { class: "src", text: "Prediction: " + state.deltaName + ", seed " + d.seed + ", labels " + d.labels.join(", ") + ". Outcomes: separately imported study rows in this browser. Same descriptive scoring rules as calib/score.py; independence and study validity are unverified." }));
+      if (rows.length) out.appendChild(h("div", null, [h("button", { type: "button", text: "Save rows as a file", onclick: function () {
+        var blob = new Blob([load().map(function (x) { return JSON.stringify(x); }).join("\n") + "\n"], { type: "application/json" });
+        var a = h("a", { href: URL.createObjectURL(blob), download: "outcomes.jsonl" });
+        document.body.appendChild(a); a.click(); a.remove();
+      } }), " ", h("span", { class: "small", text: "The file goes to your own disk. Put it at calib/outcomes.jsonl to score it with python3 -m calib.score." })]));
+    }
+    draw();
+    return sec;
+  }
+
+  renderSlots();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+{
+  "about": "Shared contract for calib/score.py and web/score.js. Both implementations must produce these results. Expected values were worked out by hand before either implementation existed. A delta here carries only the fields the scorer reads.",
+  "cases": [
+    {
+      "name": "empty",
+      "delta": {"direction": "helps", "magnitude": {"goal_rate_change": 0.75}},
+      "rows": [],
+      "expect": {"n": 0, "rows": [], "rejected": [], "simulator": [0, 0], "silent_null": [0, 0],
+                 "discordant": [0, 0], "p_value": 1.0, "leader": "silent_null", "verdict": "undetermined",
+                 "abs_error": [null, null]}
+    },
+    {
+      "name": "correct_sign_n1",
+      "delta": {"direction": "helps", "magnitude": {"goal_rate_change": 0.75}},
+      "rows": [{"base": {"reached": 0, "n": 1}, "head": {"reached": 1, "n": 1}}],
+      "expect": {"n": 1, "rows": [["helped", "right", "wrong"]], "rejected": [], "simulator": [1, 0], "silent_null": [0, 1],
+                 "discordant": [1, 0], "p_value": 1.0, "leader": "simulator", "verdict": "undetermined",
+                 "abs_error": [0.25, 1.0]}
+    },
+    {
+      "name": "wrong_sign_n1",
+      "delta": {"direction": "helps", "magnitude": {"goal_rate_change": 0.75}},
+      "rows": [{"base": {"reached": 1, "n": 1}, "head": {"reached": 0, "n": 1}}],
+      "expect": {"n": 1, "rows": [["hurt", "wrong", "wrong"]], "rejected": [], "simulator": [0, 1], "silent_null": [0, 1],
+                 "discordant": [0, 0], "p_value": 1.0, "leader": "silent_null", "verdict": "undetermined",
+                 "abs_error": [1.75, 1.0]}
+    },
+    {
+      "name": "no_change_row_against_helps",
+      "delta": {"direction": "helps", "magnitude": {"goal_rate_change": 0.75}},
+      "rows": [{"base": {"reached": 1, "n": 1}, "head": {"reached": 1, "n": 1}}],
+      "expect": {"n": 1, "rows": [["no change", "wrong", "right"]], "rejected": [], "simulator": [0, 1], "silent_null": [1, 0],
+                 "discordant": [0, 1], "p_value": 1.0, "leader": "silent_null", "verdict": "undetermined",
+                 "abs_error": [0.75, 0.0]}
+    },
+    {
+      "name": "all_zero_delta",
+      "delta": {"direction": "no detectable change", "magnitude": {"goal_rate_change": 0.0}},
+      "rows": [
+        {"base": {"reached": 3, "n": 10}, "head": {"reached": 3, "n": 10}},
+        {"base": {"reached": 3, "n": 10}, "head": {"reached": 3, "n": 10}},
+        {"base": {"reached": 3, "n": 10}, "head": {"reached": 3, "n": 10}},
+        {"base": {"reached": 3, "n": 10}, "head": {"reached": 3, "n": 10}},
+        {"base": {"reached": 3, "n": 10}, "head": {"reached": 3, "n": 10}},
+        {"base": {"reached": 3, "n": 10}, "head": {"reached": 3, "n": 10}}
+      ],
+      "expect": {"n": 6, "rows": [["no change", "right", "right"], ["no change", "right", "right"], ["no change", "right", "right"],
+                                  ["no change", "right", "right"], ["no change", "right", "right"], ["no change", "right", "right"]],
+                 "rejected": [], "simulator": [6, 0], "silent_null": [6, 0],
+                 "discordant": [0, 0], "p_value": 1.0, "leader": "silent_null", "verdict": "undetermined",
+                 "abs_error": [0.0, 0.0]}
+    },
+    {
+      "name": "zero_outcomes_against_helps_x6",
+      "delta": {"direction": "helps", "magnitude": {"goal_rate_change": 0.75}},
+      "rows": [
+        {"base": {"reached": 3, "n": 10}, "head": {"reached": 3, "n": 10}},
+        {"base": {"reached": 3, "n": 10}, "head": {"reached": 3, "n": 10}},
+        {"base": {"reached": 3, "n": 10}, "head": {"reached": 3, "n": 10}},
+        {"base": {"reached": 3, "n": 10}, "head": {"reached": 3, "n": 10}},
+        {"base": {"reached": 3, "n": 10}, "head": {"reached": 3, "n": 10}},
+        {"base": {"reached": 3, "n": 10}, "head": {"reached": 3, "n": 10}}
+      ],
+      "expect": {"n": 6, "rows": [["no change", "wrong", "right"], ["no change", "wrong", "right"], ["no change", "wrong", "right"],
+                                  ["no change", "wrong", "right"], ["no change", "wrong", "right"], ["no change", "wrong", "right"]],
+                 "rejected": [], "simulator": [0, 6], "silent_null": [6, 0],
+                 "discordant": [0, 6], "p_value": 0.03125, "leader": "silent_null", "verdict": "silent_null ahead",
+                 "abs_error": [0.75, 0.0]}
+    },
+    {
+      "name": "simulator_right_x6",
+      "delta": {"direction": "helps", "magnitude": {"goal_rate_change": 0.75}},
+      "rows": [
+        {"base": {"reached": 0, "n": 1}, "head": {"reached": 1, "n": 1}},
+        {"base": {"reached": 0, "n": 1}, "head": {"reached": 1, "n": 1}},
+        {"base": {"reached": 0, "n": 1}, "head": {"reached": 1, "n": 1}},
+        {"base": {"reached": 0, "n": 1}, "head": {"reached": 1, "n": 1}},
+        {"base": {"reached": 0, "n": 1}, "head": {"reached": 1, "n": 1}},
+        {"base": {"reached": 0, "n": 1}, "head": {"reached": 1, "n": 1}}
+      ],
+      "expect": {"n": 6, "rows": [["helped", "right", "wrong"], ["helped", "right", "wrong"], ["helped", "right", "wrong"],
+                                  ["helped", "right", "wrong"], ["helped", "right", "wrong"], ["helped", "right", "wrong"]],
+                 "rejected": [], "simulator": [6, 0], "silent_null": [0, 6],
+                 "discordant": [6, 0], "p_value": 0.03125, "leader": "simulator", "verdict": "simulator ahead",
+                 "abs_error": [0.25, 1.0]}
+    },
+    {
+      "name": "simulator_right_x5",
+      "delta": {"direction": "helps", "magnitude": {"goal_rate_change": 0.75}},
+      "rows": [
+        {"base": {"reached": 0, "n": 1}, "head": {"reached": 1, "n": 1}},
+        {"base": {"reached": 0, "n": 1}, "head": {"reached": 1, "n": 1}},
+        {"base": {"reached": 0, "n": 1}, "head": {"reached": 1, "n": 1}},
+        {"base": {"reached": 0, "n": 1}, "head": {"reached": 1, "n": 1}},
+        {"base": {"reached": 0, "n": 1}, "head": {"reached": 1, "n": 1}}
+      ],
+      "expect": {"n": 5, "rows": [["helped", "right", "wrong"], ["helped", "right", "wrong"], ["helped", "right", "wrong"],
+                                  ["helped", "right", "wrong"], ["helped", "right", "wrong"]],
+                 "rejected": [], "simulator": [5, 0], "silent_null": [0, 5],
+                 "discordant": [5, 0], "p_value": 0.0625, "leader": "simulator", "verdict": "undetermined",
+                 "abs_error": [0.25, 1.0]}
+    },
+    {
+      "name": "mixed_7_1_not_significant",
+      "delta": {"direction": "helps", "magnitude": {"goal_rate_change": 0.75}},
+      "rows": [
+        {"base": {"reached": 0, "n": 1}, "head": {"reached": 1, "n": 1}},
+        {"base": {"reached": 0, "n": 1}, "head": {"reached": 1, "n": 1}},
+        {"base": {"reached": 0, "n": 1}, "head": {"reached": 1, "n": 1}},
+        {"base": {"reached": 0, "n": 1}, "head": {"reached": 1, "n": 1}},
+        {"base": {"reached": 0, "n": 1}, "head": {"reached": 1, "n": 1}},
+        {"base": {"reached": 0, "n": 1}, "head": {"reached": 1, "n": 1}},
+        {"base": {"reached": 0, "n": 1}, "head": {"reached": 1, "n": 1}},
+        {"base": {"reached": 1, "n": 1}, "head": {"reached": 1, "n": 1}}
+      ],
+      "expect": {"n": 8, "rows": [["helped", "right", "wrong"], ["helped", "right", "wrong"], ["helped", "right", "wrong"],
+                                  ["helped", "right", "wrong"], ["helped", "right", "wrong"], ["helped", "right", "wrong"],
+                                  ["helped", "right", "wrong"], ["no change", "wrong", "right"]],
+                 "rejected": [], "simulator": [7, 1], "silent_null": [1, 7],
+                 "discordant": [7, 1], "p_value": 0.0703125, "leader": "simulator", "verdict": "tied",
+                 "abs_error": [0.3125, 0.875]}
+    },
+    {
+      "name": "aggregate_rates_hurt",
+      "delta": {"direction": "hurts", "magnitude": {"goal_rate_change": -0.5}},
+      "rows": [{"base": {"reached": 40, "n": 100}, "head": {"reached": 30, "n": 80}}],
+      "expect": {"n": 1, "rows": [["hurt", "right", "wrong"]], "rejected": [], "simulator": [1, 0], "silent_null": [0, 1],
+                 "discordant": [1, 0], "p_value": 1.0, "leader": "simulator", "verdict": "undetermined",
+                 "abs_error": [0.475, 0.025]}
+    },
+    {
+      "name": "rejects_rows_without_a_direction",
+      "delta": {"direction": "helps", "magnitude": {"goal_rate_change": 0.75}},
+      "rows": [
+        {"base": {"reached": 0, "n": 0}, "head": {"reached": 1, "n": 1}},
+        {"base": {"reached": 2, "n": 1}, "head": {"reached": 1, "n": 1}},
+        {"head": {"reached": 1, "n": 1}},
+        {"base": {"reached": 0.5, "n": 1}, "head": {"reached": 1, "n": 1}},
+        {"base": {"reached": 0, "n": 1}, "head": {"reached": 1, "n": 1}}
+      ],
+      "expect": {"n": 1, "rows": [["helped", "right", "wrong"]], "rejected": [0, 1, 2, 3], "simulator": [1, 0], "silent_null": [0, 1],
+                 "discordant": [1, 0], "p_value": 1.0, "leader": "simulator", "verdict": "undetermined",
+                 "abs_error": [0.25, 1.0]}
+    }
+  ]
+}

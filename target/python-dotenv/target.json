@@ -1,0 +1,41 @@
+{
+  "name": "python-dotenv",
+  "doc_url": "https://github.com/theskumar/python-dotenv/blob/a00cb2eed0704cd6d2071b2004c37e95ccc86ee5/README.md",
+  "doc_raw_url": "https://raw.githubusercontent.com/theskumar/python-dotenv/a00cb2eed0704cd6d2071b2004c37e95ccc86ee5/README.md",
+  "doc_commit": "a00cb2eed0704cd6d2071b2004c37e95ccc86ee5",
+  "doc_fetched": "2026-09-29",
+  "snapshot": "README.snapshot.md",
+  "section_start": "## Getting Started",
+  "section_end": "## Other Use Cases",
+  "wheel": "wheels/python_dotenv-1.2.3-py3-none-any.whl",
+  "wheel_sha256": "904552145e8bfed22162c09dab1c2b9b54fefa7b23ba780f4f26ca0316b0f0d9",
+  "package": "python-dotenv",
+  "goal": "Load DOMAIN from a .env file into a Python script and see its value (example.org).",
+  "goal_value": "example.org",
+  "workdir": "/work",
+  "steps": [
+    {
+      "id": "installed",
+      "title": "Installed the package",
+      "check": "in the fork after the session: python -c 'import dotenv' exits 0"
+    },
+    {
+      "id": "env_file",
+      "title": "Created a .env file that parses",
+      "check": "in the fork after the session: dotenv_values('/work/.env')['DOMAIN'] == 'example.org'"
+    },
+    {
+      "id": "app_ran",
+      "title": "Ran code that calls load_dotenv",
+      "check": "step log: a python run whose source contains load_dotenv exited 0"
+    },
+    {
+      "id": "saw_value",
+      "title": "Saw the loaded value",
+      "check": "step log: the output of a python run that calls load_dotenv contains example.org"
+    }
+  ],
+  "installed_probe": "import dotenv",
+  "env_probe": "import sys; from dotenv import dotenv_values; sys.exit(0 if dotenv_values('/work/.env').get('DOMAIN') == 'example.org' else 1)",
+  "app_marker": "load_dotenv"
+}

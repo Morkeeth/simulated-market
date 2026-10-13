@@ -1,0 +1,4 @@
+# Published SDK inspected against this exact release; current web docs are newer.
+contree-sdk==0.3.6
+
+mini-swe-agent==2.4.6

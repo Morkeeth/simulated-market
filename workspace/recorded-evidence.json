@@ -1,0 +1,294 @@
+{
+  "cases": {
+    "github": {
+      "forecast": [
+        {
+          "records": {
+            "abstention_reason": null,
+            "probabilities": {
+              "base": 0.5,
+              "head": 0.5
+            }
+          },
+          "sha256": "07d2ae0d23d12c48f6d89733319c673e9a96d834e432127737e889862d21a489",
+          "source": "~/.local/state/sim-provider/github-mcp-agent-baseline-20261008/forecast/forecast.json"
+        },
+        {
+          "records": {
+            "brier": 0.25,
+            "constant_half_brier": 0.25,
+            "reserved_outcomes": 2,
+            "scored_outcomes": 2
+          },
+          "sha256": "1dd03ae95ab31316e0d80bdf98082822d3a08caa34f7acf6849dd2d34a054df1",
+          "source": "~/.local/state/sim-provider/github-mcp-agent-baseline-20261008/score.json"
+        }
+      ],
+      "moments": {
+        "base": [
+          {
+            "records": {
+              "command": "mcp call '{\"owner\":\"local\",\"repo\":\"release\",\"pullNumber\":42,\"method\":\"get_files\",\"page\":1,\"perPage\":3}' > /agent/pr_files.json",
+              "exit_code": 0
+            },
+            "sha256": "34fec0285fe04f3a7a68980cd8285eef04e187798fb08c92f3167704c7addf1f",
+            "source": "~/.local/state/sim-provider/github-mcp-agent-baseline-20261008/base/agent.trace.jsonl"
+          },
+          {
+            "records": {
+              "error_output": "  File \"<string>\", line 1\n    import json; from collections import defaultdict; data = json.load(open(\"/agent/pr_files.json\")); sql_files = [f for f in data if f[\"path\"].startswith(\"db/migrations/forward/\") and f[\"path\"].endswith(\".sql\")]; operations = defaultdict(lambda: {\"path\": \"\", \"table\": \"\", \"operations\": []}); for file in sql_files: path = file[\"path\"]; with open(\"/agent/pr_files.json\", \"r\") as f: content = f.read(); content_json = json.loads(content); for line in content_json[\"content\"].split(\"\\n\"): if \"CREATE TABLE\" in line: operations[path][\"table\"] = line.split(\" \")[2]; operations[path][\"operations\"].append(\"create-table\"); elif \"ALTER TABLE\" in line: operations[path][\"table\"] = line.split(\" \")[2]; if \"ADD COLUMN\" in line: operations[path][\"operations\"].append(\"add-column\"); elif \"CREATE INDEX\" in line: operations[path][\"operations\"].append(\"create-index\"); elif \"DROP COLUMN\" in line: operations[path][\"operations\"].append(\"drop-column\"); elif \"BACKFILL\" in line: operations[path][\"operations\"].append(\"backfill\"); import json; with open(\"/agent/inventory.json\", \"w\") as f: json.dump({\"migrations\": [{\"path\": path, \"table\": operations[path][\"table\"], \"operations\": operations[path][\"operations\"]}]}, f, indent=2);\n                                                                                                                                                                                                                                                                                                     ^^^\nSyntaxError: invalid syntax\n",
+              "exit_code": 1,
+              "first_failed_command": "python -c 'import json; from collections import defaultdict; data = json.load(open(\"/agent/pr_files.json\")); sql_files = [f for f in data if f[\"path\"].startswith(\"db/migrations/forward/\") and f[\"path\"].endswith(\".sql\")]; operations = defaultdict(lambda: {\"path\": \"\", \"table\": \"\", \"operations\": []}); for file in sql_files: path = file[\"path\"]; with open(\"/agent/pr_files.json\", \"r\") as f: content = f.read(); content_json = json.loads(content); for line in content_json[\"content\"].split(\"\\n\"): if \"CREATE TABLE\" in line: operations[path][\"table\"] = line.split(\" \")[2]; operations[path][\"operations\"].append(\"create-table\"); elif \"ALTER TABLE\" in line: operations[path][\"table\"] = line.split(\" \")[2]; if \"ADD COLUMN\" in line: operations[path][\"operations\"].append(\"add-column\"); elif \"CREATE INDEX\" in line: operations[path][\"operations\"].append(\"create-index\"); elif \"DROP COLUMN\" in line: operations[path][\"operations\"].append(\"drop-column\"); elif \"BACKFILL\" in line: operations[path][\"operations\"].append(\"backfill\"); import json; with open(\"/agent/inventory.json\", \"w\") as f: json.dump({\"migrations\": [{\"path\": path, \"table\": operations[path][\"table\"], \"operations\": operations[path][\"operations\"]}]}, f, indent=2);'"
+            },
+            "sha256": "34fec0285fe04f3a7a68980cd8285eef04e187798fb08c92f3167704c7addf1f",
+            "source": "~/.local/state/sim-provider/github-mcp-agent-baseline-20261008/base/agent.trace.jsonl"
+          },
+          {
+            "records": {
+              "controller_verdict": {
+                "error": "TimeoutError('timed out')",
+                "passed": false,
+                "reason": "controller error"
+              },
+              "episode_status": "LimitsExceeded",
+              "model_calls": 8,
+              "submitted": false
+            },
+            "sha256": "23e65d08da7205de2f6dd68761e4fc9803975a7aa75d19afcea11a9c737ab797",
+            "source": "~/.local/state/sim-provider/github-mcp-agent-baseline-20261008/base/episode.json"
+          }
+        ],
+        "head": [
+          {
+            "records": {
+              "command": "mcp call '{\"owner\":\"local\",\"repo\":\"release\",\"pullNumber\":42,\"method\":\"get_files\",\"page\":1,\"perPage\":3}' > /agent/pr_files.json",
+              "exit_code": 0
+            },
+            "sha256": "34fec0285fe04f3a7a68980cd8285eef04e187798fb08c92f3167704c7addf1f",
+            "source": "~/.local/state/sim-provider/github-mcp-agent-baseline-20261008/head/agent.trace.jsonl"
+          },
+          {
+            "records": {
+              "error_output": "  File \"<string>\", line 1\n    import json; from collections import defaultdict; data = json.load(open(\"/agent/pr_files.json\")); sql_files = [f for f in data if f[\"path\"].startswith(\"db/migrations/forward/\") and f[\"path\"].endswith(\".sql\")]; operations = defaultdict(lambda: {\"path\": \"\", \"table\": \"\", \"operations\": []}); for file in sql_files: path = file[\"path\"]; with open(\"/agent/pr_files.json\", \"r\") as f: content = f.read(); content_json = json.loads(content); for line in content_json[\"content\"].split(\"\\n\"): if \"CREATE TABLE\" in line: operations[path][\"table\"] = line.split(\" \")[2]; operations[path][\"operations\"].append(\"create-table\"); elif \"ALTER TABLE\" in line: operations[path][\"table\"] = line.split(\" \")[2]; if \"ADD COLUMN\" in line: operations[path][\"operations\"].append(\"add-column\"); elif \"CREATE INDEX\" in line: operations[path][\"operations\"].append(\"create-index\"); elif \"DROP COLUMN\" in line: operations[path][\"operations\"].append(\"drop-column\"); elif \"BACKFILL\" in line: operations[path][\"operations\"].append(\"backfill\"); import json; with open(\"/agent/inventory.json\", \"w\") as f: json.dump({\"migrations\": [{\"path\": path, \"table\": operations[path][\"table\"], \"operations\": operations[path][\"operations\"]}]}, f, indent=2);\n                                                                                                                                                                                                                                                                                                     ^^^\nSyntaxError: invalid syntax\n",
+              "exit_code": 1,
+              "first_failed_command": "python -c 'import json; from collections import defaultdict; data = json.load(open(\"/agent/pr_files.json\")); sql_files = [f for f in data if f[\"path\"].startswith(\"db/migrations/forward/\") and f[\"path\"].endswith(\".sql\")]; operations = defaultdict(lambda: {\"path\": \"\", \"table\": \"\", \"operations\": []}); for file in sql_files: path = file[\"path\"]; with open(\"/agent/pr_files.json\", \"r\") as f: content = f.read(); content_json = json.loads(content); for line in content_json[\"content\"].split(\"\\n\"): if \"CREATE TABLE\" in line: operations[path][\"table\"] = line.split(\" \")[2]; operations[path][\"operations\"].append(\"create-table\"); elif \"ALTER TABLE\" in line: operations[path][\"table\"] = line.split(\" \")[2]; if \"ADD COLUMN\" in line: operations[path][\"operations\"].append(\"add-column\"); elif \"CREATE INDEX\" in line: operations[path][\"operations\"].append(\"create-index\"); elif \"DROP COLUMN\" in line: operations[path][\"operations\"].append(\"drop-column\"); elif \"BACKFILL\" in line: operations[path][\"operations\"].append(\"backfill\"); import json; with open(\"/agent/inventory.json\", \"w\") as f: json.dump({\"migrations\": [{\"path\": path, \"table\": operations[path][\"table\"], \"operations\": operations[path][\"operations\"]}]}, f, indent=2);'"
+            },
+            "sha256": "34fec0285fe04f3a7a68980cd8285eef04e187798fb08c92f3167704c7addf1f",
+            "source": "~/.local/state/sim-provider/github-mcp-agent-baseline-20261008/head/agent.trace.jsonl"
+          },
+          {
+            "records": {
+              "controller_verdict": {
+                "error": "TimeoutError('timed out')",
+                "passed": false,
+                "reason": "controller error"
+              },
+              "episode_status": "LimitsExceeded",
+              "model_calls": 8,
+              "submitted": false
+            },
+            "sha256": "d9a1bb9f7dbd8524e5e017841b89c96053513f7acf5a1e1e3aca8d76915c61a1",
+            "source": "~/.local/state/sim-provider/github-mcp-agent-baseline-20261008/head/episode.json"
+          }
+        ]
+      }
+    },
+    "markitdown": {
+      "forecast": [
+        {
+          "records": {
+            "abstention_reason": null,
+            "probabilities": {
+              "base": 0.5,
+              "head": 0.5
+            }
+          },
+          "sha256": "552244f29e735cf97c1b4234b42eeb2b56ef61effad493f0fbd961ac51e1a941",
+          "source": "~/.local/state/sim-provider/markitdown-prospective-checker-revision-20261008/forecast/forecast.json"
+        },
+        {
+          "records": {
+            "brier": 0.25,
+            "constant_half_brier": 0.25,
+            "reserved_outcomes": 2,
+            "scored_outcomes": 2
+          },
+          "sha256": "52cd8a747c1720488bb217cbf828a5250d6385f96ebb1f4f98a92c4f43ef916a",
+          "source": "~/.local/state/sim-provider/markitdown-prospective-checker-revision-20261008/score.json"
+        }
+      ],
+      "moments": {
+        "base": [
+          {
+            "records": {
+              "commands": [
+                "tool --help",
+                "tool -x xlsx /work/release-handoff.xlsx | tee /agent/markdown_table.md"
+              ],
+              "exit_codes": [
+                0,
+                0
+              ]
+            },
+            "sha256": "3f1947162087736f05f48d81dd084b3c161ccdb92090f6e19df712c5b2f324eb",
+            "source": "~/.local/state/sim-provider/markitdown-prospective-checker-revision-20261008/trial/state.json"
+          },
+          {
+            "records": {
+              "later_agent_commands": [
+                "cat /agent/markdown_table.md | awk 'NR>1 {print $3, $5}' > /agent/action_items.txt"
+              ],
+              "tool_output": "## Release handoff\n| ticket | owner | instruction | due\\_days | artifact |\n| --- | --- | --- | --- | --- |\n| REL-41 | Nora | Before staging\\nrun rollback rehearsal | 2 | rollback-report.md |\n| REL-42 | Amir | Compare schema export\\nwith migration plan | 3 | schema-diff.json |\n| REL-43 | Liv | Review search latency\\n\\nthen attach percentile chart | 1 | latency.png |\n| REL-44 | Sam | Retain the literal path | 4 | C:\\new\\templates |\nsh: 1: blkid: not found\n"
+            },
+            "sha256": "3f1947162087736f05f48d81dd084b3c161ccdb92090f6e19df712c5b2f324eb",
+            "source": "~/.local/state/sim-provider/markitdown-prospective-checker-revision-20261008/trial/state.json"
+          },
+          {
+            "records": {
+              "controller_check": {
+                "output": "",
+                "passed": true,
+                "returncode": 0,
+                "source": "controller check in separate networkless container"
+              },
+              "episode_status": "Submitted"
+            },
+            "sha256": "3f1947162087736f05f48d81dd084b3c161ccdb92090f6e19df712c5b2f324eb",
+            "source": "~/.local/state/sim-provider/markitdown-prospective-checker-revision-20261008/trial/state.json"
+          }
+        ],
+        "head": [
+          {
+            "records": {
+              "commands": [
+                "tool --help",
+                "tool -x xlsx /work/release-handoff.xlsx | tee /agent/markdown_table.md"
+              ],
+              "exit_codes": [
+                0,
+                0
+              ]
+            },
+            "sha256": "3f1947162087736f05f48d81dd084b3c161ccdb92090f6e19df712c5b2f324eb",
+            "source": "~/.local/state/sim-provider/markitdown-prospective-checker-revision-20261008/trial/state.json"
+          },
+          {
+            "records": {
+              "later_agent_commands": [
+                "sed -i 's/C:\\\\new\\\\templates/\\\\C:\\\\new\\\\templates/g' /agent/markdown_table.md",
+                "cat /agent/markdown_table.md",
+                "sed -i 's/C:\\\\new\\\\templates/\\\\C:\\\\new\\\\templates/g' /agent/markdown_table.md",
+                "cat /agent/markdown_table.md"
+              ],
+              "tool_output": "## Release handoff\n| ticket | owner | instruction | due\\_days | artifact |\n| --- | --- | --- | --- | --- |\n| REL-41 | Nora | Before staging run rollback rehearsal | 2 | rollback-report.md |\n| REL-42 | Amir | Compare schema export with migration plan | 3 | schema-diff.json |\n| REL-43 | Liv | Review search latency then attach percentile chart | 1 | latency.png |\n| REL-44 | Sam | Retain the literal path | 4 | C:\\new\\templates |\nsh: 1: blkid: not found\n"
+            },
+            "sha256": "3f1947162087736f05f48d81dd084b3c161ccdb92090f6e19df712c5b2f324eb",
+            "source": "~/.local/state/sim-provider/markitdown-prospective-checker-revision-20261008/trial/state.json"
+          },
+          {
+            "records": {
+              "controller_check": {
+                "output": "",
+                "passed": true,
+                "returncode": 0,
+                "source": "controller check in separate networkless container"
+              },
+              "episode_status": "Submitted"
+            },
+            "sha256": "3f1947162087736f05f48d81dd084b3c161ccdb92090f6e19df712c5b2f324eb",
+            "source": "~/.local/state/sim-provider/markitdown-prospective-checker-revision-20261008/trial/state.json"
+          }
+        ]
+      }
+    },
+    "transcripto": {
+      "forecast": [
+        {
+          "records": {
+            "abstention_reason": null,
+            "probabilities": {
+              "base": 0.5,
+              "head": 0.5
+            }
+          },
+          "sha256": "d6fc0ac511813c52d12eb6893d1524374372c6df583a0df83b697971a9e3516f",
+          "source": "~/.local/state/sim-provider/transcripto-prospective-baseline-20261008/forecast/forecast.json"
+        },
+        {
+          "records": {
+            "brier": 0.25,
+            "constant_half_brier": 0.25,
+            "reserved_outcomes": 2,
+            "scored_outcomes": 2
+          },
+          "sha256": "3aabbc94ee3c1866acbf0797fb72bd9690a35781373112924351f608ef18cd66",
+          "source": "~/.local/state/sim-provider/transcripto-prospective-baseline-20261008/score.json"
+        }
+      ],
+      "moments": {
+        "base": [
+          {
+            "records": {
+              "command": "tool replay /work/rollout-synthetic.jsonl --root /work --json --all",
+              "exit_code": 0
+            },
+            "sha256": "bf16278bdc21c9f573a28a22052b38212520ba4ffedd61b88ac44da9e9d88dcb",
+            "source": "~/.local/state/sim-provider/transcripto-prospective-baseline-20261008/trial/state.json"
+          },
+          {
+            "records": {
+              "tool_output": "{\n  \"schema\": \"transcripto.replay/1\",\n  \"synthetic\": true,\n  \"episodes\": [\n    {\n      \"prompt\": \"Run the release checks.\",\n      \"line\": 2,\n      \"timestamp\": \"\",\n      \"source\": \"/work/rollout-synthetic.jsonl\",\n      \"synthetic\": true,\n      \"session_id\": \"synthetic-record-limit-long\",\n      \"events\": [\n        {\n          \"tool\": \"exec_command\",\n          \"kind\": \"check\",\n          \"target\": \"python -m pytest\",\n          \"status\": \"unknown\",\n          \"evidence\": \"No matching tool result recorded.\",\n          \"line\": 3,\n          \"result_line\": null\n        }\n      ],\n      \"reply\": \"\",\n      \"number\": 1,\n      \"harness\": \"codex\",\n      \"title\": \"THE MISSING RECEIPT\"\n    }\n  ],\n  \"warnings\": [\n    \"/work/rollout-synthetic.jsonl: skipped 0 malformed and 1 oversized record(s)\"\n  ],\n  \"proxy\": \"Status describes a tool result, not task correctness. Missing results stay unknown.\"\n}\n"
+            },
+            "sha256": "bf16278bdc21c9f573a28a22052b38212520ba4ffedd61b88ac44da9e9d88dcb",
+            "source": "~/.local/state/sim-provider/transcripto-prospective-baseline-20261008/trial/state.json"
+          },
+          {
+            "records": {
+              "controller_check": {
+                "output": "",
+                "passed": false,
+                "returncode": 1,
+                "source": "controller check in separate networkless container"
+              },
+              "episode_status": "Submitted"
+            },
+            "sha256": "bf16278bdc21c9f573a28a22052b38212520ba4ffedd61b88ac44da9e9d88dcb",
+            "source": "~/.local/state/sim-provider/transcripto-prospective-baseline-20261008/trial/state.json"
+          }
+        ],
+        "head": [
+          {
+            "records": {
+              "command": "tool replay /work/rollout-synthetic.jsonl --root /work --json --all",
+              "exit_code": 0
+            },
+            "sha256": "bf16278bdc21c9f573a28a22052b38212520ba4ffedd61b88ac44da9e9d88dcb",
+            "source": "~/.local/state/sim-provider/transcripto-prospective-baseline-20261008/trial/state.json"
+          },
+          {
+            "records": {
+              "tool_output": "{\n  \"schema\": \"transcripto.replay/1\",\n  \"synthetic\": true,\n  \"episodes\": [\n    {\n      \"prompt\": \"Run the release checks.\",\n      \"line\": 2,\n      \"timestamp\": \"\",\n      \"source\": \"/work/rollout-synthetic.jsonl\",\n      \"synthetic\": true,\n      \"session_id\": \"synthetic-record-limit-long\",\n      \"events\": [\n        {\n          \"tool\": \"exec_command\",\n          \"kind\": \"check\",\n          \"target\": \"python -m pytest\",\n          \"status\": \"succeeded\",\n          \"evidence\": \"Exit code 0.\",\n          \"line\": 3,\n          \"result_line\": 4\n        }\n      ],\n      \"reply\": \"\",\n      \"number\": 1,\n      \"harness\": \"codex\",\n      \"title\": \"ON THE RECORD\"\n    }\n  ],\n  \"warnings\": [],\n  \"proxy\": \"Status describes a tool result, not task correctness. Missing results stay unknown.\"\n}\n"
+            },
+            "sha256": "bf16278bdc21c9f573a28a22052b38212520ba4ffedd61b88ac44da9e9d88dcb",
+            "source": "~/.local/state/sim-provider/transcripto-prospective-baseline-20261008/trial/state.json"
+          },
+          {
+            "records": {
+              "controller_check": {
+                "output": "",
+                "passed": true,
+                "returncode": 0,
+                "source": "controller check in separate networkless container"
+              },
+              "episode_status": "Submitted"
+            },
+            "sha256": "bf16278bdc21c9f573a28a22052b38212520ba4ffedd61b88ac44da9e9d88dcb",
+            "source": "~/.local/state/sim-provider/transcripto-prospective-baseline-20261008/trial/state.json"
+          }
+        ]
+      }
+    }
+  },
+  "kind": "bounded-excerpts-from-retained-local-receipts",
+  "limits": "Selected fields only. Source SHA-256 covers each full retained file; no new agent run was made."
+}

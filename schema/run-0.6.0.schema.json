@@ -1,0 +1,815 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "simulated-market/run.schema.json",
+  "title": "Simulated onboarding run",
+  "description": "One population run on one version of one quickstart. Deterministic: the same seed, doc, policy and checkpoint recipe must produce the same bytes. Timestamps and durations are NOT in this file; they live in a separate timing file. Every figure is a {value, source} object so a reader can trace it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "seed",
+    "labels",
+    "policy",
+    "backends",
+    "target",
+    "doc",
+    "population",
+    "cost",
+    "steps",
+    "users",
+    "quotes",
+    "grounding",
+    "populations"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.6.0",
+      "description": "Accepts immutable Nebius UUID or Docker digest for scenario checkpoints; hosted cost can be unknown."
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{16}$",
+      "description": "First 16 hex chars of sha256 over seed, doc sha, policy, model, n, checkpoint recipe sha, schema version and a hash of the engine source."
+    },
+    "seed": {
+      "type": "integer"
+    },
+    "labels": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/label"
+      },
+      "uniqueItems": true,
+      "contains": {
+        "const": "SIMULATED"
+      },
+      "description": "SIMULATED is always present. LOCAL is present whenever any backend label is LOCAL."
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "label",
+        "model"
+      ],
+      "properties": {
+        "name": {
+          "enum": [
+            "LOCAL-SCRIPTED",
+            "LOCAL-MODEL",
+            "TOKEN-FACTORY"
+          ]
+        },
+        "label": {
+          "$ref": "#/$defs/label"
+        },
+        "model": {
+          "description": "null for LOCAL-SCRIPTED, which runs no model.",
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "runtime",
+                "temperature",
+                "seed"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "runtime": {
+                  "type": "string"
+                },
+                "temperature": {
+                  "type": "number"
+                },
+                "seed": {
+                  "type": "integer"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "backends": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sandbox",
+        "model",
+        "grounding"
+      ],
+      "properties": {
+        "sandbox": {
+          "$ref": "#/$defs/backend"
+        },
+        "model": {
+          "$ref": "#/$defs/backend"
+        },
+        "grounding": {
+          "$ref": "#/$defs/backend"
+        }
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "doc_url",
+        "doc_commit",
+        "section",
+        "wheel",
+        "goal"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "doc_url": {
+          "type": "string"
+        },
+        "doc_commit": {
+          "type": "string"
+        },
+        "section": {
+          "type": "string"
+        },
+        "wheel": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "file",
+                "sha256"
+              ],
+              "properties": {
+                "file": {
+                  "type": "string"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "goal": {
+          "type": "string"
+        },
+        "scenario": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "file",
+            "sha256",
+            "checkpoint_image_id"
+          ],
+          "properties": {
+            "file": {
+              "type": "string"
+            },
+            "sha256": {
+              "$ref": "#/$defs/sha256"
+            },
+            "checkpoint_image_id": {
+              "type": "string",
+              "pattern": "^(sha256:[0-9a-f]{64}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$"
+            }
+          }
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "wheel": {
+              "type": "object"
+            }
+          }
+        },
+        {
+          "required": [
+            "scenario"
+          ],
+          "properties": {
+            "wheel": {
+              "type": "null"
+            }
+          }
+        }
+      ]
+    },
+    "doc": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sha256",
+        "patch"
+      ],
+      "properties": {
+        "sha256": {
+          "$ref": "#/$defs/sha256",
+          "description": "sha256 of the exact doc section the population read."
+        },
+        "patch": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "file",
+                "sha256"
+              ],
+              "properties": {
+                "file": {
+                  "type": "string"
+                },
+                "sha256": {
+                  "$ref": "#/$defs/sha256"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "population": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "n",
+        "humans",
+        "coding_agents"
+      ],
+      "properties": {
+        "n": {
+          "$ref": "#/$defs/intFigure"
+        },
+        "humans": {
+          "$ref": "#/$defs/intFigure"
+        },
+        "coding_agents": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "reason"
+          ],
+          "properties": {
+            "status": {
+              "enum": [
+                "run",
+                "not_run"
+              ]
+            },
+            "reason": {
+              "type": "string"
+            },
+            "n": {
+              "$ref": "#/$defs/intFigure"
+            }
+          }
+        }
+      }
+    },
+    "cost": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "unit",
+        "label",
+        "shown_before_run",
+        "source"
+      ],
+      "properties": {
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "unit": {
+          "const": "USD"
+        },
+        "label": {
+          "$ref": "#/$defs/label"
+        },
+        "shown_before_run": {
+          "const": true
+        },
+        "source": {
+          "type": "string"
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "check",
+          "reached",
+          "dropped",
+          "rate"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "check": {
+            "type": "string",
+            "description": "What was executed or read to decide that a user reached this step."
+          },
+          "reached": {
+            "$ref": "#/$defs/intFigure"
+          },
+          "dropped": {
+            "$ref": "#/$defs/intFigure",
+            "description": "Users who reached the previous step and not this one."
+          },
+          "rate": {
+            "$ref": "#/$defs/rateFigure",
+            "description": "reached / population n."
+          }
+        }
+      }
+    },
+    "users": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "population",
+          "persona",
+          "log",
+          "reached",
+          "dropped_at",
+          "gave_up"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "population": {
+            "enum": [
+              "human",
+              "coding_agent"
+            ]
+          },
+          "persona": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "skill",
+              "patience",
+              "os",
+              "reads_prose",
+              "reads_diagrams",
+              "grounding_url",
+              "reading_style",
+              "retries"
+            ],
+            "properties": {
+              "skill": {
+                "enum": [
+                  "novice",
+                  "intermediate",
+                  "expert"
+                ]
+              },
+              "patience": {
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ]
+              },
+              "os": {
+                "enum": [
+                  "macos",
+                  "linux",
+                  "windows"
+                ],
+                "description": "Sampled and recorded. Has no effect in the LOCAL sandbox, which is Linux for everyone."
+              },
+              "reads_prose": {
+                "type": "boolean"
+              },
+              "reads_diagrams": {
+                "type": "boolean"
+              },
+              "grounding_url": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "reading_style": {
+                "enum": [
+                  "linear",
+                  "skim",
+                  "code_only"
+                ],
+                "description": "How the persona reads prose. linear: prose read when reads_prose is true. skim: only the first prose paragraph after each heading. code_only: no prose. Acted on by the LOCAL-SCRIPTED policy. The model policy records it and is not told it. Added in 0.2.0."
+              },
+              "retries": {
+                "type": "boolean",
+                "description": "Tries once more after a failed command. Sampled with a probability tied to patience. Acted on by the LOCAL-SCRIPTED policy. The model policy records it and is not told it. Added in 0.2.0."
+              }
+            }
+          },
+          "log": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/logEntry"
+            }
+          },
+          "reached": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "dropped_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "gave_up": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "quotes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "user",
+          "step",
+          "text",
+          "labels",
+          "policy",
+          "grounding"
+        ],
+        "properties": {
+          "user": {
+            "type": "string"
+          },
+          "step": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/label"
+            },
+            "contains": {
+              "const": "SIMULATED"
+            }
+          },
+          "policy": {
+            "enum": [
+              "LOCAL-SCRIPTED",
+              "LOCAL-MODEL",
+              "TOKEN-FACTORY"
+            ]
+          },
+          "grounding": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "url",
+                  "label"
+                ],
+                "properties": {
+                  "url": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "$ref": "#/$defs/label"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "grounding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "backend",
+        "label",
+        "items"
+      ],
+      "properties": {
+        "backend": {
+          "type": "string"
+        },
+        "label": {
+          "$ref": "#/$defs/label"
+        },
+        "items": {
+          "$ref": "#/$defs/intFigure"
+        }
+      }
+    },
+    "populations": {
+      "type": "array",
+      "minItems": 1,
+      "description": "One entry per simulated population, side by side on the same checkpoint. Each carries its own labels and per-step funnel. The humans entry repeats the top-level steps; its transcripts stay in users[]. A coding_agents entry carries its own transcripts in users.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "population",
+          "labels",
+          "backend",
+          "n",
+          "steps"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "humans",
+              "coding_agents"
+            ]
+          },
+          "population": {
+            "enum": [
+              "human",
+              "coding_agent"
+            ]
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/label"
+            },
+            "uniqueItems": true,
+            "contains": {
+              "const": "SIMULATED"
+            }
+          },
+          "backend": {
+            "$ref": "#/$defs/backend"
+          },
+          "harness": {
+            "type": "object",
+            "description": "Coding agents only: harness, version, model and limits. Part of the run id."
+          },
+          "n": {
+            "$ref": "#/$defs/intFigure"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/populationStep"
+            }
+          },
+          "users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/agentUser"
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "label": {
+      "enum": [
+        "SIMULATED",
+        "LOCAL",
+        "LOCAL-SCRIPTED",
+        "LOCAL-MODEL",
+        "LOCAL-FIXTURE",
+        "RUNTIME"
+      ]
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "label"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "label": {
+          "$ref": "#/$defs/label"
+        }
+      }
+    },
+    "intFigure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "source"
+      ],
+      "properties": {
+        "value": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "rateFigure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "source"
+      ],
+      "properties": {
+        "value": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "logEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "i",
+        "action",
+        "detail",
+        "exit_code",
+        "stdout_sha256",
+        "stdout_excerpt"
+      ],
+      "properties": {
+        "i": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "action": {
+          "enum": [
+            "run",
+            "write",
+            "paste_python",
+            "skip",
+            "give_up",
+            "done",
+            "probe"
+          ]
+        },
+        "detail": {
+          "type": "string",
+          "description": "The command, the file path, or the reason."
+        },
+        "exit_code": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "stdout_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stdout_excerpt": {
+          "type": "string"
+        },
+        "el": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "description": "Source document element index; null when the user reached the end."
+        }
+      }
+    },
+    "populationStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "reached",
+        "dropped"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "reached": {
+          "$ref": "#/$defs/intFigure"
+        },
+        "dropped": {
+          "$ref": "#/$defs/intFigure"
+        }
+      }
+    },
+    "agentUser": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "population",
+        "exit_status",
+        "log",
+        "reached",
+        "dropped_at",
+        "gave_up"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^a[0-9]{3}$"
+        },
+        "population": {
+          "const": "coding_agent"
+        },
+        "exit_status": {
+          "type": "string",
+          "description": "mini-swe-agent exit status: Submitted, LimitsExceeded, RepeatedFormatError, ..."
+        },
+        "log": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/logEntry"
+          }
+        },
+        "reached": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dropped_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "gave_up": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

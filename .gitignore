@@ -1,0 +1,20 @@
+.worktrees/
+.venv*/
+.local/
+__pycache__/
+*.pyc
+.pytest_cache/
+runs/*.json
+runs/receipts/
+vendor/.cache/
+runs/*.log
+calib/scores.jsonl
+calib/outcomes.jsonl
+ci/fixtures/repo/
+ci/runs/
+ci/reports/
+runs/checks.jsonl
+
+# Cached runtime may be a local symlink in isolated worktrees.
+.venv-model
+.venv-agent
