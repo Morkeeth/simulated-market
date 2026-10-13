@@ -22,10 +22,10 @@ import threading
 import time
 from urllib.parse import urlsplit
 
-from sim import hosted_cost, tool_trial, task_contract, task_rail
+from sim import hosted_cost, tool_trial, task_contract, task_rail, completion_evidence
 
 PROVIDER = 'Nebius Token Factory'
-SHARED_STOP_USD = Decimal('8')       # the same stop the deeper report uses
+SHARED_STOP_USD = Decimal(os.environ.get('SIM_PROVIDER_STOP_USD', '8'))
 RUN_CAP_USD = Decimal('0.25')        # conservative account, held reservations included
 MAX_OUTPUT_TOKENS = 220
 PAGE_CHARS = 3600
@@ -66,7 +66,7 @@ def cache_key(url, job, tries):
     """A saved result stands for one address, one task, these visitors and goals, this many tries and this setup."""
     people = personas_for(job)
     setup = {'address': url.strip().rstrip('/'), 'job': job.strip().rstrip('.').casefold(), 'tries': tries, 'model': hosted_cost.MODEL,
-             'visitors': [[x['id'], x['goal'], x['max_steps'], list(x['viewport'])] for x in people], 'rules': 3, 'task_contract': task_contract.compile_task(job).payload()}
+             'visitors': [[x['id'], x['goal'], x['max_steps'], list(x['viewport'])] for x in people], 'rules': 4, 'task_contract': task_contract.compile_task(job).payload()}
     return hashlib.sha256(json.dumps(setup, sort_keys=True).encode()).hexdigest()[:32]
 
 
@@ -300,7 +300,7 @@ Existing content made by other people is not the start. A page that only explain
 
 MOVES = {'went_somewhere': 'open something beyond the first screen', 'came_back': 'come back to a screen you were on before',
          'wrote': 'do the part that needs an account or saves something, which a read-only visitor cannot do',
-         'task_contract': 'clarify the task before calling it complete'}
+         'content_evidence': 'read the actual answer in page content, not a navigation label', 'task_contract': 'clarify the task before calling it complete'}
 def required_moves(job):
     return list(task_contract.compile_task(job).required_moves)
 
@@ -309,10 +309,14 @@ def moves_made(trail):
     return task_rail.observed_moves(trail)
 
 
-def completion(job, screen_confirmed, trail):
+def completion(job, screen_confirmed, trail, *, evidence=None, content=None, http_status=None):
     """Keep model confirmation separate from independent task enforcement."""
     if not screen_confirmed:
         return {'state': 'claimed', 'missing': []}
+    if content is not None:
+        valid, reason = completion_evidence.check(job, evidence, content, http_status)
+        if not valid:
+            return {'state': 'screen_confirmed', 'missing': ['content_evidence'], 'reason': reason}
     decision = task_rail.enforce(task_contract.compile_task(job), trail)
     return {'state': 'job_completed' if decision.allowed else 'screen_confirmed',
             'missing': list(decision.missing)}
@@ -533,6 +537,7 @@ def _visit_one(p, person, client, budget, url, seed, t0, publish, shared, tag='t
                 for n in range(1, person['max_steps'] + 1):
                     began = time.monotonic(); at['step'] = n
                     full = page.locator('body').inner_text()
+                    content = page.evaluate(completion_evidence.CONTENT_JS)
                     here = page.url.split('#')[0]
                     elements = [e for e in page.evaluate(COLLECT, MAX_CHOICES) if (e['text'], e['href']) not in tried.get(here, ())]
                     locked = [e['text'] for e in elements if (refusal(e, host) or '').startswith(('That needs', 'That would'))]
@@ -546,6 +551,7 @@ def _visit_one(p, person, client, budget, url, seed, t0, publish, shared, tag='t
                             'page_text': re.sub(r'\s+', ' ', full[offset:offset + 420]).strip(), 'choices_seen': len(elements), 'needs_account': [x for x in locked if NEEDS_ACCOUNT.search(x)][:6],
                             'start_ms': round((began - t0) * 1000), 'status': 'thinking', 'action': None, 'say': ''}
                     row['steps'].append(step); publish(row)
+                    step['page_evidence_text'] = content[:PAGE_CHARS]
                     # First the visitor says whether the task is completed on this screen, and points at the words.
                     note_claim = ''
                     if (here, offset) not in refused:
@@ -559,7 +565,7 @@ def _visit_one(p, person, client, budget, url, seed, t0, publish, shared, tag='t
                             second, second_call = budget.call(client, confirm_messages(person, view['text'], trail), f"{tag}-{person['id']}-{n:02d}-confirm", seed, 0)
                             verdict = parse_confirm(second.text); agreed = confirmed(verdict, view['text'])
                             if verdict['done'] and not agreed: verdict['why'] = 'It said yes but pointed at no words on this screen that show it. ' + verdict['why']
-                            state = completion(person['goal'], agreed, trail)
+                            state = completion(person['goal'], agreed, trail, evidence=verdict['evidence'], content=content, http_status=nav['status'])
                             step['claim'] = {'quote': look['quote'], 'confirmed': agreed, 'why': verdict['why']}; step['claim_evidence'] = verdict['evidence']
                             step['claim_state'] = state; step['trail'] = trail
                             step['confirm_call'] = {'model_ms': second_call['ms'], 'usage': second_call['usage']}

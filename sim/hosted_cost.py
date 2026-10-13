@@ -11,10 +11,10 @@ import json
 import os
 from pathlib import Path
 
-ROOT = Path.home() / '.local/state/sim-provider'
+ROOT = Path(os.environ.get('SIM_PROVIDER_ROOT', str(Path.home() / '.local/state/sim-provider')))
 PRIOR = ROOT / 'hosted-spend.json'
 RECORD = ROOT / 'nvidia-live-cost.json'
-LIMIT = Decimal('10')
+LIMIT = Decimal(os.environ.get('SIM_PROVIDER_CAP_USD', '10'))
 MODEL = 'nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B'
 INPUT_RATE = Decimal('0.06')
 OUTPUT_RATE = Decimal('0.24')

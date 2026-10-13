@@ -30,6 +30,7 @@ sim/app_check.py
 sim/app_swarm.py
 sim/cli.py
 sim/compare.py
+sim/completion_evidence.py
 sim/counterfactual.py
 sim/decision_impact.py
 sim/doc.py
@@ -98,6 +99,7 @@ target/python-dotenv/target.json
 target/python-dotenv/wheels/python_dotenv-1.2.3-py3-none-any.whl
 tests/test_app_check.py
 tests/test_app_swarm.py
+tests/test_completion_evidence.py
 tests/test_night_paths.py
 tests/test_task_contract.py
 web/index.html
