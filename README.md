@@ -25,9 +25,9 @@ This startup command keeps model visitors, model reports and sponsor execution o
 
 See [the app-check guide](docs/app-check.md) for the full-run interface, its limits and explicit enablement. The configured model is NVIDIA Nemotron Nano through Nebius Token Factory. Full model use makes billable inference requests. It is distinct from the basic check and from replaying saved screens. No judge-hosted deployment, human validation, revenue forecast or prediction accuracy is established by this source snapshot.
 
-## First Users direction
+## First Users
 
-The ambition is to pair simulated visitors with verified human first visits: run a bounded task with software visitors, then ask paid, verified humans through FAVOUR to attempt the same task. Keep both reports separate and measure where they agree. That human flow, its supply, payments and calibration are planned; no integration or human result is claimed here. The first offer to test is EUR19 for one check, before subscription plans. There are no sales or live payments.
+The ambition is to pair simulated visitors with verified human first visits: run a bounded task with software visitors, then ask paid, verified humans through FAVOUR to attempt the same task. Keep both reports separate and measure where they agree. That human flow, its supply, payments and calibration are planned; no integration or human result is claimed here. The first offer is First Users at EUR19 for one software check, before subscription plans. There are no sales or live payments.
 
 ## Supporting paths
 
@@ -46,3 +46,7 @@ The two focused app test modules are included. To run them, install pytest in yo
 ## License and third-party material
 
 The project source is under [MIT](LICENSE). The public python-dotenv demo target retains its BSD license at [target/python-dotenv/LICENSE.python-dotenv](target/python-dotenv/LICENSE.python-dotenv). Keep third-party notices when distributing the source. Dependency installation fetches packages governed by their own licenses.
+
+## First Users front door
+
+The local front door adds URL → approved task → clearly labelled practice/Stripe TEST step → check → saved report → capability share → downloadable FAVOUR project draft. Start with `python -m sim.first_users --store ../first-users-private --port 3899`; model calls stay off. Use `--sample` for bundled examples only. See [First Users setup and limits](docs/first-users.md). No live payment or automatic FAVOUR posting is included.

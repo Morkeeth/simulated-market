@@ -7,6 +7,7 @@ calib/__init__.py
 calib/score.py
 calib/vectors.json
 docs/app-check.md
+docs/first-users.md
 docs/payment-scale.md
 docs/task-contract.md
 grounding/fixture.jsonl
@@ -28,6 +29,7 @@ sim/adapters/tokenfactory.py
 sim/agent_protocol.py
 sim/app_check.py
 sim/app_swarm.py
+sim/check_queue.py
 sim/cli.py
 sim/compare.py
 sim/completion_evidence.py
@@ -36,6 +38,9 @@ sim/decision_impact.py
 sim/doc.py
 sim/docs_rescue.py
 sim/errors.py
+sim/favour_handoff.py
+sim/first_users.py
+sim/first_users_payment.py
 sim/grounding.py
 sim/guard.py
 sim/hosted_cost.py
@@ -100,6 +105,7 @@ target/python-dotenv/wheels/python_dotenv-1.2.3-py3-none-any.whl
 tests/test_app_check.py
 tests/test_app_swarm.py
 tests/test_completion_evidence.py
+tests/test_first_users.py
 tests/test_night_paths.py
 tests/test_task_contract.py
 web/index.html
@@ -108,6 +114,9 @@ web/workspace.html
 workspace/app-test.html
 workspace/app-test.js
 workspace/app.js
+workspace/first-users.css
+workspace/first-users.html
+workspace/first-users.js
 workspace/forecast-review.js
 workspace/index.html
 workspace/recorded-evidence.json
