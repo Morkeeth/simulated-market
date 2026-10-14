@@ -26,7 +26,7 @@ def request(path,fields=None):
 def begin(job,base):
     if not test_key():return {'mode':'PRACTICE_NO_CHARGE','key_place':KEY_PLACE,'amount_eur':19,'paid':False}
     r=request('checkout/sessions',{'mode':'payment','line_items[0][price_data][currency]':'eur',
-        'line_items[0][price_data][unit_amount]':'1900','line_items[0][price_data][product_data][name]':'First Users — one app check',
+        'line_items[0][price_data][unit_amount]':'1900','line_items[0][price_data][product_data][name]':'First Users: one app check',
         'line_items[0][quantity]':'1','metadata[first_users_job]':job,
         'success_url':base+'/?draft='+job+'&checkout={CHECKOUT_SESSION_ID}','cancel_url':base+'/?cancelled=1'})
     if r.get('livemode') is not False:raise ValueError('Non-test session rejected.')
