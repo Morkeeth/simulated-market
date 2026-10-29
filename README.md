@@ -1,5 +1,13 @@
 # simulated-market
 
+**Give an app a task, let model-driven visitors try it, and inspect every step behind the result.**
+
+- Problem: you cannot tell whether a page opens and a task path holds for a stranger until someone tries it.
+- For: builders who want a bounded, repeatable check of a running web app before asking real people.
+- What it does: a local workspace runs a basic "does it load" check with Playwright and saves the screens; with your own Nebius Token Factory key it can send NVIDIA Nemotron visitors through the task. Visitors only read pages. No sales, live payments or human results are claimed.
+- Try it: the four commands under "Start with a basic check". Built October 2026.
+
+
 Give an app a task, let software visitors try it, and inspect the steps behind the result. NVIDIA Nemotron on Nebius Token Factory drives the optional full run. The visitors are models, not people. They read pages; they do not sign in, type, buy, upload or save in the app being tested.
 
 `workspace/recorded-evidence.json` and the recorded replay contain selected historical excerpts and hashes; their `source` paths name the author's local evidence, which is not bundled or available as runnable paths in this snapshot.
