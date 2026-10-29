@@ -1,5 +1,22 @@
 # simulated-market
 
+## TLDR
+
+Give a web app a task and inspect what model-driven visitors saw and did.<br>
+For builders checking a bounded navigation path before asking people to try it.<br>
+Recorded playback and a basic browser check are distinct from a new paid model run.
+
+## The problem and approach
+
+- Problem: you cannot tell whether a page opens and a task path holds for a stranger until someone tries it.
+- What it does: a local workspace runs a basic "does it load" check with Playwright and saves the screens; with your own Nebius Token Factory key it can send NVIDIA Nemotron visitors through the task. Visitors only read pages. No sales, live payments or human results are claimed.
+
+## Review and pick up the work
+
+[Agent guide](AGENTS.md)
+
+Start with the linked source, setup and evidence. Recorded demos and sample data keep their original scope; use the repository instructions for a fresh run.
+
 Give an app a task, let software visitors try it, and inspect the steps behind the result. NVIDIA Nemotron on Nebius Token Factory drives the optional full run. The visitors are models, not people. They read pages; they do not sign in, type, buy, upload or save in the app being tested.
 
 `workspace/recorded-evidence.json` and the recorded replay contain selected historical excerpts and hashes; their `source` paths name the author's local evidence, which is not bundled or available as runnable paths in this snapshot.
@@ -50,3 +67,7 @@ The project source is under [MIT](LICENSE). The public python-dotenv demo target
 ## First Users front door
 
 The local front door adds URL → approved task → clearly labelled practice/Stripe TEST step → check → saved report → capability share → downloadable FAVOUR project draft. Start with `python -m sim.first_users --store ../first-users-private --port 3899`; model calls stay off. Use `--sample` for bundled examples only. See [First Users setup and limits](docs/first-users.md). No live payment or automatic FAVOUR posting is included.
+
+## License and data boundaries
+
+Code terms: [LICENSE](LICENSE). Data, provider responses, media, fonts and other third-party assets may have separate terms. Repository access alone does not grant rights to those materials. 
